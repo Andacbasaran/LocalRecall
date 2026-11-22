@@ -15,6 +15,7 @@ class SystemTrayManager(QObject):
     open_requested = pyqtSignal()
     toggle_pause_requested = pyqtSignal()
     capture_now_requested = pyqtSignal()
+    purge_recent_requested = pyqtSignal()
     settings_requested = pyqtSignal()
     quit_requested = pyqtSignal()
 
@@ -38,6 +39,12 @@ class SystemTrayManager(QObject):
         self.capture_now_action = QAction("Şimdi Yakala", menu)
         self.capture_now_action.triggered.connect(self.capture_now_requested.emit)
         menu.addAction(self.capture_now_action)
+
+        self.purge_recent_action = QAction("Son 15 Dakikayı Sil (Gizlilik)", menu)
+        self.purge_recent_action.triggered.connect(self.purge_recent_requested.emit)
+        menu.addAction(self.purge_recent_action)
+
+        menu.addSeparator()
 
         self.settings_action = QAction("Ayarlar…", menu)
         self.settings_action.triggered.connect(self.settings_requested.emit)

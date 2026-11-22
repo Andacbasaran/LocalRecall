@@ -1,4 +1,4 @@
-"""Arka plan ekran yakalama servisi (mss + PrivacyFilter + FrameDiffLock + OCR)."""
+"""Arka plan ekran yakalama servisi (mss + Idle Kontrol + PrivacyFilter + FrameDiffLock + OCR)."""
 
 from __future__ import annotations
 
@@ -17,13 +17,13 @@ from localrecall.storage.media import MediaStore
 
 from .diff import FrameDiffLock
 from .privacy import PrivacyFilter
-from .window_info import get_active_window_info
+from .window_info import get_active_window_info, get_idle_seconds
 
 logger = logging.getLogger(__name__)
 
 
 class CaptureService:
-    """Belirli aralıklarla ekranı izler; gizlilik ve Frame Diff Lock kontrolünden geçenleri kaydeder."""
+    """Belirli aralıklarla ekranı izler; gizlilik, boşta kalma ve Frame Diff Lock kontrolünden geçenleri kaydeder."""
 
     def __init__(
         self,
@@ -56,6 +56,7 @@ class CaptureService:
         if config.pause_on_start:
             self._pause_event.set()
         self._thread: threading.Thread | None = None
+        self._was_idle = False
 
     @property
     def is_paused(self) -> bool:
@@ -73,6 +74,8 @@ class CaptureService:
         self.media.quality = config.webp_quality
         self.media.max_width = config.max_image_width
         self.ocr_engine.min_confidence = config.ocr_min_confidence
+        if config.ocr_enabled and self.is_running:
+            self.ocr_worker.start()
 
     def pause(self) -> None:
         self._pause_event.set()
@@ -109,6 +112,15 @@ class CaptureService:
 
     def capture_once(self, force: bool = False) -> int | None:
         """Tek seferlik yakalama dener. Kaydedilirse capture_id, atlanırsa None döndürür."""
+        if not force and self.config.idle_pause_sec > 0:
+            idle_sec = get_idle_seconds()
+            if idle_sec >= self.config.idle_pause_sec:
+                if not self._was_idle:
+                    self._was_idle = True
+                    self._emit_status(f"Kullanıcı boşta ({int(idle_sec)} sn) — uyku modu")
+                return None
+            self._was_idle = False
+
         window = get_active_window_info()
         skip, reason = self.privacy.should_skip(window)
         if skip:
@@ -128,7 +140,6 @@ class CaptureService:
             if not changed:
                 return None
         else:
-            # Zorunlu yakalamada referans kareyi güncelle
             self.diff_lock.has_changed(image)
 
         now = datetime.now()
@@ -153,6 +164,15 @@ class CaptureService:
         self._emit_status(f"Yakalandı: {window.process_name or 'Ekran'} ({now.strftime('%H:%M:%S')})")
         return capture_id
 
+    def purge_last_minutes(self, minutes: int = 15) -> int:
+        """Son N dakikadaki tüm kayıtları veritabanı ve diskten anında siler."""
+        paths = self.db.purge_last_minutes(minutes)
+        for rel in paths:
+            self.media.delete_image(rel)
+        if paths:
+            self.diff_lock.reset()
+        return len(paths)
+
     def run_retention_cleanup(self) -> int:
         """Saklama süresini aşan eski kayıtları veritabanı ve diskten temizler."""
         old_paths = self.db.purge_older_than(self.config.retention_days)
@@ -169,7 +189,6 @@ class CaptureService:
             self.on_status(message)
 
     def _loop(self) -> None:
-        # Başlangıçta bir kez eski kayıtları temizle
         try:
             purged = self.run_retention_cleanup()
             if purged:

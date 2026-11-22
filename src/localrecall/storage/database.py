@@ -23,19 +23,21 @@ class CaptureRecord:
     width: int
     height: int
     ocr_done: bool = True
+    ocr_boxes: str = "[]"
 
 
 @dataclass(slots=True)
 class SearchResult:
-    """FTS5 tam metin arama sonucu."""
+    """Tam metin / hibrit arama sonucu."""
 
     record: CaptureRecord
     snippet: str
     rank: float
+    match_type: str = "fts"
 
 
 def _sanitize_fts_query(raw_query: str) -> str:
-    """Kullanıcı arama sorgusunu güvenli FTS5 prefix/phrase sorgusuna dönüştürür."""
+    """Kullanıcı arama sorgusunu güvenli FTS5 prefix sorgusuna dönüştürür."""
     tokens = re.findall(r"[\wçğıöşüÇĞİÖŞÜ]+", raw_query, flags=re.UNICODE)
     if not tokens:
         return ""
@@ -73,6 +75,7 @@ class Database:
                     app_name TEXT NOT NULL DEFAULT '',
                     window_title TEXT NOT NULL DEFAULT '',
                     ocr_text TEXT NOT NULL DEFAULT '',
+                    ocr_boxes TEXT NOT NULL DEFAULT '[]',
                     width INTEGER NOT NULL DEFAULT 0,
                     height INTEGER NOT NULL DEFAULT 0,
                     ocr_done INTEGER NOT NULL DEFAULT 0
@@ -108,6 +111,10 @@ class Database:
                 END;
                 """
             )
+            # Eski veritabanları için otomatik sütun migrasyonu
+            cols = {row["name"] for row in cur.execute("PRAGMA table_info(captures)").fetchall()}
+            if "ocr_boxes" not in cols:
+                cur.execute("ALTER TABLE captures ADD COLUMN ocr_boxes TEXT NOT NULL DEFAULT '[]'")
             self._conn.commit()
 
     def close(self) -> None:
@@ -126,6 +133,7 @@ class Database:
             width=int(row["width"]),
             height=int(row["height"]),
             ocr_done=bool(row["ocr_done"]),
+            ocr_boxes=str(row["ocr_boxes"] if "ocr_boxes" in row.keys() else "[]"),
         )
 
     def insert_capture(
@@ -137,25 +145,26 @@ class Database:
         height: int,
         ocr_text: str = "",
         ocr_done: bool = False,
+        ocr_boxes: str = "[]",
         timestamp: datetime | None = None,
     ) -> int:
         ts_str = (timestamp or datetime.now()).isoformat(timespec="seconds")
         with self._lock:
             cur = self._conn.execute(
                 """
-                INSERT INTO captures (timestamp, image_path, app_name, window_title, ocr_text, width, height, ocr_done)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO captures (timestamp, image_path, app_name, window_title, ocr_text, ocr_boxes, width, height, ocr_done)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (ts_str, image_path, app_name, window_title, ocr_text, width, height, int(ocr_done)),
+                (ts_str, image_path, app_name, window_title, ocr_text, ocr_boxes, width, height, int(ocr_done)),
             )
             self._conn.commit()
             return int(cur.lastrowid)
 
-    def update_ocr_text(self, capture_id: int, ocr_text: str) -> None:
+    def update_ocr_text(self, capture_id: int, ocr_text: str, ocr_boxes: str = "[]") -> None:
         with self._lock:
             self._conn.execute(
-                "UPDATE captures SET ocr_text = ?, ocr_done = 1 WHERE id = ?",
-                (ocr_text, capture_id),
+                "UPDATE captures SET ocr_text = ?, ocr_boxes = ?, ocr_done = 1 WHERE id = ?",
+                (ocr_text, ocr_boxes, capture_id),
             )
             self._conn.commit()
 
@@ -167,18 +176,30 @@ class Database:
             ).fetchone()
             return self._row_to_record(row) if row else None
 
-    def get_recent(self, limit: int = 200, app_name: str | None = None) -> list[CaptureRecord]:
+    def get_recent(
+        self,
+        limit: int = 200,
+        app_name: str | None = None,
+        start: datetime | None = None,
+        end: datetime | None = None,
+    ) -> list[CaptureRecord]:
+        clauses: list[str] = []
+        params: list[object] = []
+        if app_name:
+            clauses.append("app_name = ?")
+            params.append(app_name)
+        if start is not None:
+            clauses.append("timestamp >= ?")
+            params.append(start.isoformat(timespec="seconds"))
+        if end is not None:
+            clauses.append("timestamp <= ?")
+            params.append(end.isoformat(timespec="seconds"))
+
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        sql = f"SELECT * FROM captures {where} ORDER BY timestamp DESC, id DESC LIMIT ?"
+        params.append(limit)
         with self._lock:
-            if app_name:
-                rows = self._conn.execute(
-                    "SELECT * FROM captures WHERE app_name = ? ORDER BY timestamp DESC, id DESC LIMIT ?",
-                    (app_name, limit),
-                ).fetchall()
-            else:
-                rows = self._conn.execute(
-                    "SELECT * FROM captures ORDER BY timestamp DESC, id DESC LIMIT ?",
-                    (limit,),
-                ).fetchall()
+            rows = self._conn.execute(sql, params).fetchall()
             return [self._row_to_record(r) for r in rows]
 
     def get_timeline(
@@ -222,8 +243,8 @@ class Database:
         """FTS5 kullanarak uygulama adı, pencere başlığı ve OCR metninde anında arama yapar."""
         fts_query = _sanitize_fts_query(query)
         if not fts_query:
-            records = self.get_recent(limit=limit, app_name=app_name)
-            return [SearchResult(record=r, snippet=r.ocr_text[:160], rank=0.0) for r in records]
+            records = self.get_recent(limit=limit, app_name=app_name, start=start, end=end)
+            return [SearchResult(record=r, snippet=r.ocr_text[:160], rank=0.0, match_type="recent") for r in records]
 
         clauses = ["captures_fts MATCH ?"]
         params: list[object] = [fts_query]
@@ -259,6 +280,7 @@ class Database:
                     record=self._row_to_record(r),
                     snippet=str(r["snippet"] or ""),
                     rank=float(r["rank"]),
+                    match_type="fts",
                 )
                 for r in rows
             ]
@@ -270,6 +292,21 @@ class Database:
                 "SELECT DISTINCT app_name FROM captures WHERE app_name != '' ORDER BY app_name COLLATE NOCASE"
             ).fetchall()
             return [str(r["app_name"]) for r in rows]
+
+    def get_app_breakdown(self, limit: int = 15) -> list[tuple[str, int]]:
+        """Uygulama bazında kayıt sayısını çoktan aza döndürür."""
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT COALESCE(NULLIF(app_name, ''), 'Bilinmiyor') AS app, COUNT(*) AS cnt
+                FROM captures
+                GROUP BY app
+                ORDER BY cnt DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+            return [(str(r["app"]), int(r["cnt"])) for r in rows]
 
     def delete_capture(self, capture_id: int) -> str | None:
         """Kaydı siler ve silinen kaydın image_path değerini döndürür."""
@@ -284,6 +321,23 @@ class Database:
             self._conn.execute("DELETE FROM captures WHERE id = ?", (capture_id,))
             self._conn.commit()
             return image_path
+
+    def purge_last_minutes(self, minutes: int) -> list[str]:
+        """Son N dakika içindeki tüm kayıtları siler (hızlı gizlilik temizliği)."""
+        if minutes <= 0:
+            return []
+        cutoff = (datetime.now() - timedelta(minutes=minutes)).isoformat(timespec="seconds")
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT image_path FROM captures WHERE timestamp >= ?",
+                (cutoff,),
+            ).fetchall()
+            if not rows:
+                return []
+            image_paths = [str(r["image_path"]) for r in rows]
+            self._conn.execute("DELETE FROM captures WHERE timestamp >= ?", (cutoff,))
+            self._conn.commit()
+            return image_paths
 
     def purge_older_than(self, days: int) -> list[str]:
         """Belirtilen günden eski kayıtları siler ve diskten silinecek image_path listesini döndürür."""
@@ -301,6 +355,11 @@ class Database:
             self._conn.execute("DELETE FROM captures WHERE timestamp < ?", (cutoff,))
             self._conn.commit()
             return image_paths
+
+    def vacuum(self) -> None:
+        """Veritabanı dosyasını sıkıştırarak kullanılmayan disk alanını geri kazanır."""
+        with self._lock:
+            self._conn.execute("VACUUM")
 
     def get_stats(self) -> dict[str, int]:
         """Toplam kayıt ve OCR tamamlanan kayıt sayısını döndürür."""

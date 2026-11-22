@@ -44,8 +44,9 @@ QPushButton:hover {
     border-color: #8b949e;
 }
 
-QPushButton:pressed {
-    background-color: #161b22;
+QPushButton:pressed, QPushButton:checked {
+    background-color: #1f3a5f;
+    border-color: #58a6ff;
 }
 
 QPushButton#primaryButton {
@@ -78,7 +79,7 @@ QListWidget {
 
 QListWidget::item {
     border-radius: 6px;
-    padding: 8px;
+    padding: 6px;
     margin: 2px 0;
     border: 1px solid transparent;
 }
@@ -90,6 +91,44 @@ QListWidget::item:hover {
 QListWidget::item:selected {
     background-color: #1f3a5f;
     border: 1px solid #58a6ff;
+}
+
+QTabWidget::pane {
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    background-color: #12161d;
+    padding: 8px;
+}
+
+QTabBar::tab {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-bottom: none;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    padding: 7px 14px;
+    margin-right: 4px;
+    color: #8b949e;
+}
+
+QTabBar::tab:selected {
+    background-color: #1f242c;
+    color: #e6edf3;
+    border-color: #58a6ff;
+}
+
+QProgressBar {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 5px;
+    height: 18px;
+    text-align: center;
+    color: #e6edf3;
+}
+
+QProgressBar::chunk {
+    background-color: #1f6feb;
+    border-radius: 4px;
 }
 
 QSlider::groove:horizontal {
@@ -124,12 +163,6 @@ QStatusBar {
     color: #8b949e;
 }
 
-QLabel#previewFrame {
-    background-color: #0b0e14;
-    border: 1px solid #30363d;
-    border-radius: 8px;
-}
-
 QLabel#metaLabel {
     color: #8b949e;
     font-size: 12px;
@@ -151,14 +184,12 @@ def create_app_icon(paused: bool = False) -> QIcon:
     painter.setPen(Qt.PenStyle.NoPen)
     painter.drawRoundedRect(4, 4, size - 8, size - 8, 14, 14)
 
-    # İç halka / zaman geri sarma sembolü
     pen = QPen(QColor("#ffffff"), 5)
     pen.setCapStyle(Qt.PenCapStyle.RoundCap)
     painter.setPen(pen)
     painter.setBrush(Qt.BrushStyle.NoBrush)
     painter.drawArc(16, 16, 32, 32, 45 * 16, 270 * 16)
 
-    # Orta nokta veya duraklatma çizgileri
     if paused:
         painter.setBrush(QColor("#ffffff"))
         painter.setPen(Qt.PenStyle.NoPen)

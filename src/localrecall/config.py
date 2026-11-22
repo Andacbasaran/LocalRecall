@@ -1,9 +1,10 @@
-"""Uygulama yapılandırması ve kalıcı ayar yönetimi."""
+"""Uygulama yapılandırması, kalıcı ayarlar ve Windows başlangıç yönetimi."""
 
 from __future__ import annotations
 
 import json
 import os
+import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -47,11 +48,40 @@ def get_default_data_dir() -> Path:
     return Path.home() / ".localrecall"
 
 
+def set_windows_autostart(enabled: bool, app_name: str = "LocalRecall") -> bool:
+    """Windows oturum açılışında otomatik başlatma kaydını ekler veya kaldırır."""
+    if sys.platform != "win32":
+        return False
+    try:
+        import winreg
+
+        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE) as key:
+            if enabled:
+                if getattr(sys, "frozen", False):
+                    cmd = f'"{sys.executable}"'
+                else:
+                    script = Path(__file__).resolve().parents[2] / "main.py"
+                    pythonw = Path(sys.executable).with_name("pythonw.exe")
+                    exe = pythonw if pythonw.exists() else Path(sys.executable)
+                    cmd = f'"{exe}" "{script}" --minimized'
+                winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, cmd)
+            else:
+                try:
+                    winreg.DeleteValue(key, app_name)
+                except FileNotFoundError:
+                    pass
+        return True
+    except OSError:
+        return False
+
+
 @dataclass
 class AppConfig:
     """LocalRecall kalıcı uygulama ayarları."""
 
     capture_interval_sec: float = 3.0
+    idle_pause_sec: float = 60.0  # Kullanıcı bu kadar saniye hareketsizse yakalamayı atla (0 = kapalı)
     diff_threshold: float = 0.015  # 0.0 - 1.0 arası ortalama piksel farkı eşiği (%1.5)
     webp_quality: int = 75
     max_image_width: int = 1920
@@ -60,6 +90,10 @@ class AppConfig:
     ocr_enabled: bool = True
     ocr_min_confidence: float = 0.45
     pause_on_start: bool = False
+    auto_start: bool = False
+    global_hotkey_enabled: bool = True
+    global_hotkey: str = "Ctrl+Shift+Space"
+    search_mode: str = "hybrid"  # "fts" veya "hybrid"
     blocked_processes: list[str] = field(
         default_factory=lambda: list(DEFAULT_BLOCKED_PROCESSES)
     )

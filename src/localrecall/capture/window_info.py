@@ -1,4 +1,4 @@
-"""Windows Win32 API (ctypes) ile aktif pencere başlığı ve süreç adı tespiti."""
+"""Windows Win32 API (ctypes) ile aktif pencere, boşta kalma süresi ve monitör bilgisi."""
 
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ import os
 import sys
 from dataclasses import dataclass
 
+import mss
+
 
 @dataclass(slots=True)
 class ActiveWindowInfo:
@@ -16,6 +18,52 @@ class ActiveWindowInfo:
     process_name: str
     window_title: str
     pid: int = 0
+
+
+class _LASTINPUTINFO(ctypes.Structure):
+    _fields_ = [
+        ("cbSize", ctypes.c_uint),
+        ("dwTime", ctypes.c_uint),
+    ]
+
+
+def get_idle_seconds() -> float:
+    """Son klavye/fare girdisinden bu yana geçen süreyi saniye cinsinden döndürür (Windows)."""
+    if sys.platform != "win32":
+        return 0.0
+    try:
+        user32 = ctypes.windll.user32
+        kernel32 = ctypes.windll.kernel32
+        info = _LASTINPUTINFO()
+        info.cbSize = ctypes.sizeof(_LASTINPUTINFO)
+        if not user32.GetLastInputInfo(ctypes.byref(info)):
+            return 0.0
+        # 32-bit wrap-around güvenli fark hesabı
+        tick_now = int(kernel32.GetTickCount()) & 0xFFFFFFFF
+        elapsed_ms = (tick_now - int(info.dwTime)) & 0xFFFFFFFF
+        return elapsed_ms / 1000.0
+    except Exception:
+        return 0.0
+
+
+def list_monitors() -> list[tuple[int, str]]:
+    """Kullanılabilir monitörleri (mss_index, etiket) çiftleri halinde döndürür."""
+    result: list[tuple[int, str]] = []
+    try:
+        with mss.mss() as sct:
+            for idx, mon in enumerate(sct.monitors):
+                w = mon.get("width", 0)
+                h = mon.get("height", 0)
+                if idx == 0:
+                    result.append((0, f"Tüm Monitörler ({w}x{h})"))
+                else:
+                    label = f"Monitör {idx} ({w}x{h})"
+                    if idx == 1:
+                        label += " — Birincil"
+                    result.append((idx, label))
+    except Exception:
+        result.append((1, "Monitör 1 (Birincil)"))
+    return result
 
 
 def get_active_window_info() -> ActiveWindowInfo:
