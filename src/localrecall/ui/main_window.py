@@ -1468,14 +1468,18 @@ class MainWindow(QMainWindow):
     def request_quit(self) -> None:
         self._force_quit = True
         self._rewind_timer.stop()
-        self._executor.shutdown(wait=False, cancel_futures=True)
+        if hasattr(self, "_search_timer"):
+            self._search_timer.stop()
+        self._executor.shutdown(wait=True, cancel_futures=True)
         self.close()
 
     def closeEvent(self, event: QCloseEvent | None) -> None:
         can_tray = bool(QSystemTrayIcon.isSystemTrayAvailable()) and self.config.minimize_to_tray
         if self._force_quit or not can_tray:
             self._rewind_timer.stop()
-            self._executor.shutdown(wait=False, cancel_futures=True)
+            if hasattr(self, "_search_timer"):
+                self._search_timer.stop()
+            self._executor.shutdown(wait=True, cancel_futures=True)
             if event:
                 event.accept()
             return

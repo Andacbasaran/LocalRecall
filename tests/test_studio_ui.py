@@ -52,7 +52,9 @@ def studio_env(tmp_path, qapp, monkeypatch):
     finally:
         win.request_quit()
         svc.stop()
+        qapp.processEvents()
         db.close()
+        win.deleteLater()
         qapp.processEvents()
 
 
