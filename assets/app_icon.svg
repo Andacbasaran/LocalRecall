@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Matte Obsidian Flat Tile -->
+  <rect x="12" y="12" width="488" height="488" rx="114" fill="#111114" stroke="#27272E" stroke-width="6"/>
+
+  <!-- Geometric Rewind Shutter Arc -->
+  <g fill="none" stroke="#FAFAFA" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 358 158 A 136 136 0 1 1 144 166"/>
+    <path d="M 148 124 L 114 176 L 174 182"/>
+  </g>
+
+  <!-- Central Optical Recall Lens Core (Sky Blue Accent) -->
+  <circle cx="256" cy="240" r="46" fill="#38BDF8"/>
+  <circle cx="256" cy="240" r="19" fill="#111114"/>
+
+  <!-- Lower Visual Timeline Scrubber Track -->
+  <rect x="114" y="408" width="284" height="24" rx="12" fill="#27272E"/>
+  <rect x="114" y="408" width="178" height="24" rx="12" fill="#38BDF8"/>
+  <circle cx="292" cy="420" r="16" fill="#FAFAFA" stroke="#111114" stroke-width="5"/>
+</svg>

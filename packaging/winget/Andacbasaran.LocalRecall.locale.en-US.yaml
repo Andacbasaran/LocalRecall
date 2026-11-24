@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: Andacbasaran.LocalRecall
+PackageVersion: 1.0.0
+PackageLocale: en-US
+Publisher: Andac Basaran
+PublisherUrl: https://localrecall.andacbasaran.com/
+PublisherSupportUrl: https://github.com/Andacbasaran/LocalRecall/issues
+PackageName: LocalRecall
+PackageUrl: https://localrecall.andacbasaran.com/
+License: MIT
+LicenseUrl: https://github.com/Andacbasaran/LocalRecall/blob/main/LICENSE
+ShortDescription: 100% offline, privacy-first, 0 MB VRAM smart screen memory with instant OCR search and PII redaction.
+Description: >-
+  LocalRecall is an open-source, cross-platform alternative to Windows Recall and Rewind.
+  It captures screen changes with perceptual ring-buffer deduplication, extracts on-screen
+  text offline using RapidOCR (ONNX CPU, 0 MB VRAM), indexes everything into a local
+  diacritic-folded SQLite FTS5 + N-Gram RRF engine (<1 ms search), and automatically
+  blocks password managers, private browser tabs, and sensitive PII secrets.
+Tags:
+  - recall
+  - screen-memory
+  - ocr
+  - privacy
+  - offline
+  - sqlite
+  - fts5
+  - productivity
+  - pii-redaction
+ReleaseNotesUrl: https://github.com/Andacbasaran/LocalRecall/releases/tag/v1.0.0
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

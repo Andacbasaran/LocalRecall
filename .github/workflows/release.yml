@@ -1,0 +1,315 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 1.0.0)"
+        required: false
+        default: "1.0.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows x64 Release
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    env:
+      PYTHONUTF8: "1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Determine release version
+        id: meta
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $ver = "${{ github.ref_name }}".TrimStart("v")
+          } elseif ("${{ inputs.version }}" -ne "") {
+            $ver = "${{ inputs.version }}".TrimStart("v")
+          } else {
+            $ver = "1.0.0"
+          }
+          echo "version=$ver" >> $env:GITHUB_OUTPUT
+          echo "Building Windows release v$ver"
+
+      - name: Install dependencies, pytest, and PyInstaller
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          pip install --prefer-binary -r requirements.txt pytest pyinstaller
+          pip install -e . --no-deps
+
+      - name: Run pytest suite
+        shell: pwsh
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          pytest -v
+
+      - name: Build Windows PyInstaller bundle & Portable ZIP
+        shell: pwsh
+        run: |
+          python scripts/build_exe.py --version "${{ steps.meta.outputs.version }}"
+
+      - name: Build Inno Setup Windows Installer (.exe)
+        shell: pwsh
+        run: |
+          $iscc = Get-Command iscc -ErrorAction SilentlyContinue
+          if (-not $iscc) {
+            $defaultIscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+            if (Test-Path $defaultIscc) {
+              $isccPath = $defaultIscc
+            } else {
+              choco install innosetup -y --no-progress
+              $isccPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+            }
+          } else {
+            $isccPath = $iscc.Source
+          }
+          & $isccPath "/DMyAppVersion=${{ steps.meta.outputs.version }}" packaging/inno/installer.iss
+
+      - name: Stage Windows release assets
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.meta.outputs.version }}"
+          New-Item -ItemType Directory -Force -Path release_out | Out-Null
+
+          $setupExe = "dist\LocalRecall-Setup-v$ver-Windows-x64.exe"
+          $portableZip = "dist\LocalRecall-Portable-v$ver-Windows-x64.zip"
+
+          if (-not (Test-Path $setupExe)) { throw "Missing setup exe: $setupExe" }
+          if (-not (Test-Path $portableZip)) { throw "Missing portable zip: $portableZip" }
+
+          Copy-Item $setupExe "release_out\"
+          Copy-Item $portableZip "release_out\"
+
+          Get-ChildItem release_out
+
+      - name: Upload Windows release artifact
+        id: upload-win
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: release_out/*
+          retention-days: 30
+
+  build-macos:
+    name: Build macOS Apple Silicon (arm64) Release
+    runs-on: macos-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    env:
+      PYTHONUTF8: "1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Determine release version
+        id: meta
+        shell: bash
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VER="${{ github.ref_name }}"
+            VER="${VER#v}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VER="${{ inputs.version }}"
+            VER="${VER#v}"
+          else
+            VER="1.0.0"
+          fi
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "Building macOS release v$VER"
+
+      - name: Install dependencies, pytest, and PyInstaller
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install --prefer-binary -r requirements.txt pytest pyinstaller
+          pip install -e . --no-deps
+
+      - name: Run pytest suite
+        shell: bash
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          pytest -v
+
+      - name: Build LocalRecall.app & Apple Silicon DMG
+        shell: bash
+        run: |
+          python scripts/build_macos.py --version "${{ steps.meta.outputs.version }}" --arch arm64
+
+      - name: Upload macOS release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: dist/LocalRecall-v${{ steps.meta.outputs.version }}-macOS-arm64.dmg
+          retention-days: 30
+
+  build-linux:
+    name: Build Linux (x86_64) Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    env:
+      PYTHONUTF8: "1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Determine release version
+        id: meta
+        shell: bash
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VER="${{ github.ref_name }}"
+            VER="${VER#v}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VER="${{ inputs.version }}"
+            VER="${VER#v}"
+          else
+            VER="1.0.0"
+          fi
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "Building Linux release v$VER"
+
+      - name: Install Linux Qt runtime libraries
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libegl1 \
+            libgl1 \
+            libxkbcommon0 \
+            libdbus-1-3 \
+            libxcb-cursor0
+
+      - name: Install dependencies, pytest, and PyInstaller
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install --prefer-binary -r requirements.txt pytest pyinstaller
+          pip install -e . --no-deps
+
+      - name: Run pytest suite
+        shell: bash
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          pytest -v
+
+      - name: Build Linux x86_64 portable release (.tar.gz)
+        shell: bash
+        run: |
+          python scripts/build_linux.py --version "${{ steps.meta.outputs.version }}" --arch x86_64 --skip-appimage
+
+      - name: Upload Linux release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: dist/LocalRecall-v${{ steps.meta.outputs.version }}-Linux-x86_64.tar.gz
+          retention-days: 30
+
+  publish-release:
+    name: Publish Unified GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-macos, build-linux]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Download Windows release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-release
+          path: release_assets
+
+      - name: Download macOS release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-release
+          path: release_assets
+
+      - name: Download Linux release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-release
+          path: release_assets
+
+      - name: Generate unified SHA256SUMS.txt
+        shell: bash
+        run: |
+          cd release_assets
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' -printf '%f\n' | sort | xargs sha256sum > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Build Release Body Markdown
+        shell: bash
+        env:
+          VER: ${{ needs.build-windows.outputs.version }}
+          REPO: ${{ github.repository }}
+        run: |
+          BASE_URL="https://github.com/${REPO}/releases/download/v${VER}"
+          cat <<EOF > release_body.md
+          ## Downloads — LocalRecall v${VER}
+
+          | Platform | Package | File |
+          | --- | --- | --- |
+          | **Windows (x64)** | Full Installer (Recommended) | [\`LocalRecall-Setup-v${VER}-Windows-x64.exe\`](${BASE_URL}/LocalRecall-Setup-v${VER}-Windows-x64.exe) |
+          | **Windows (x64)** | Portable ZIP (No Install) | [\`LocalRecall-Portable-v${VER}-Windows-x64.zip\`](${BASE_URL}/LocalRecall-Portable-v${VER}-Windows-x64.zip) |
+          | **macOS (Apple Silicon)** | App DMG (\`arm64\`) | [\`LocalRecall-v${VER}-macOS-arm64.dmg\`](${BASE_URL}/LocalRecall-v${VER}-macOS-arm64.dmg) |
+          | **Linux (x86_64)** | Portable Archive (\`.tar.gz\`) | [\`LocalRecall-v${VER}-Linux-x86_64.tar.gz\`](${BASE_URL}/LocalRecall-v${VER}-Linux-x86_64.tar.gz) |
+          | **All Platforms** | SHA-256 Checksums | [\`SHA256SUMS.txt\`](${BASE_URL}/SHA256SUMS.txt) |
+
+          ### Verify Checksums (SHA-256)
+
+          - **Windows (PowerShell):**
+            \`\`\`powershell
+            Get-FileHash LocalRecall-Setup-v${VER}-Windows-x64.exe -Algorithm SHA256
+            \`\`\`
+          - **macOS:**
+            \`\`\`bash
+            shasum -a 256 LocalRecall-v${VER}-macOS-arm64.dmg
+            \`\`\`
+          - **Linux:**
+            \`\`\`bash
+            sha256sum -c --ignore-missing SHA256SUMS.txt
+            \`\`\`
+
+          ---
+          EOF
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body_path: release_body.md
+          files: release_assets/*

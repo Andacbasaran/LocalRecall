@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.locale.1.6.0.schema.json
+PackageIdentifier: Andacbasaran.LocalRecall
+PackageVersion: 1.0.0
+PackageLocale: tr-TR
+Publisher: Andac Basaran
+PublisherUrl: https://localrecall.andacbasaran.com/
+PublisherSupportUrl: https://github.com/Andacbasaran/LocalRecall/issues
+PackageName: LocalRecall
+PackageUrl: https://localrecall.andacbasaran.com/
+License: MIT
+LicenseUrl: https://github.com/Andacbasaran/LocalRecall/blob/main/LICENSE
+ShortDescription: "%100 çevrimdışı, gizlilik odaklı, 0 MB VRAM akıllı ekran hafızası, anlık OCR arama ve PII maskeleme."
+Description: >-
+  LocalRecall, Windows Recall ve Rewind için açık kaynaklı, çok platformlu bir alternatiftir.
+  Algısal halka tamponu tekilleştirme ile ekran değişikliklerini düşük CPU'da yakalar, RapidOCR
+  (ONNX CPU, 0 MB VRAM) ile metinleri çıkarır, Türkçe karakter uyumlu SQLite FTS5 + N-Gram RRF
+  motorunda milisaniyeler içinde arar ve şifre yöneticileri ile hassas PII verilerini otomatik korur.
+ReleaseNotesUrl: https://github.com/Andacbasaran/LocalRecall/releases/tag/v1.0.0
+ManifestType: locale
+ManifestVersion: 1.6.0

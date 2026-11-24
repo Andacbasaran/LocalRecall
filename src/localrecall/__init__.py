@@ -1,3 +1,9 @@
-"""LocalRecall — %100 offline, gizlilik odaklı akıllı ekran hafızası."""
+"""LocalRecall — 100% Offline, Privacy-First, 0 MB VRAM Smart Screen Memory."""
 
-__version__ = "0.1.0"
+from __future__ import annotations
+
+__version__ = "1.0.0"
+__app_name__ = "LocalRecall"
+__repo__ = "Andacbasaran/LocalRecall"
+__homepage__ = "https://localrecall.andacbasaran.com"
+__bundle_id__ = "com.andacbasaran.localrecall"

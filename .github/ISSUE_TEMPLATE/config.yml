@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Official Website & Downloads
+    url: https://localrecall.andacbasaran.com/
+    about: Download Windows, macOS, and Linux releases and explore interactive demos.
+  - name: OS & Desktop Compatibility Matrix
+    url: https://github.com/Andacbasaran/LocalRecall/blob/main/COMPATIBILITY.md
+    about: Check permissions, Wayland/X11 notes, and multi-monitor guidance.
+  - name: Security & Privacy Policy
+    url: https://github.com/Andacbasaran/LocalRecall/blob/main/SECURITY.md
+    about: Report privacy or security vulnerabilities privately.

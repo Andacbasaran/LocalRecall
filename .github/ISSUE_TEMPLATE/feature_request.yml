@@ -1,0 +1,25 @@
+name: Feature Request
+description: Suggest a privacy guard, search operator, export format, or workflow enhancement.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Use Case
+      description: What workflow or recall problem does this feature solve?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe how you envision this feature working inside LocalRecall.
+    validations:
+      required: true
+  - type: checkboxes
+    id: offline
+    attributes:
+      label: Offline-First & Privacy Alignment
+      options:
+        - label: This feature preserves 100% offline, 0 MB VRAM local-first behavior (zero cloud telemetry).

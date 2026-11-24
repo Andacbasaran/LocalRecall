@@ -23,3 +23,10 @@ models/
 .idea/
 .DS_Store
 Thumbs.db
+.wrangler/
+website/.wrangler/
+release_out/
+.ruff_cache/
+crash.log
+*.spec
+benchmark_results.json

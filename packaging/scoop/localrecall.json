@@ -1,0 +1,32 @@
+{
+    "version": "1.0.0",
+    "description": "100% offline, privacy-first, 0 MB VRAM smart screen memory with instant OCR search and automatic PII redaction.",
+    "homepage": "https://localrecall.andacbasaran.com/",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/Andacbasaran/LocalRecall/releases/download/v1.0.0/LocalRecall-Portable-v1.0.0-Windows-x64.zip",
+            "hash": "REPLACE_WITH_SHA256_FROM_RELEASE_SHA256SUMS_TXT",
+            "extract_dir": "LocalRecall"
+        }
+    },
+    "shortcuts": [
+        [
+            "LocalRecall.exe",
+            "LocalRecall"
+        ]
+    ],
+    "checkver": {
+        "github": "https://github.com/Andacbasaran/LocalRecall"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/Andacbasaran/LocalRecall/releases/download/v$version/LocalRecall-Portable-v$version-Windows-x64.zip",
+                "hash": {
+                    "url": "$baseurl/SHA256SUMS.txt"
+                }
+            }
+        }
+    }
+}

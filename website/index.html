@@ -1,0 +1,3554 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>LocalRecall — Gördüğünüz Her Şey. Anında &amp; %100 Yerel Hafıza.</title>
+  <meta name="description" content="Windows x64, macOS Apple Silicon ve Linux için 0.64 ms Türkçe katlamalı FTS5 arama, 0 MB VRAM RapidOCR, 8.3 µs otomatik PII Gizlilik Kalkanı ve ayda 0.26 GB WebP depolamalı %100 çevrimdışı açık kaynak görsel ekran hafızası." />
+  <meta name="keywords" content="LocalRecall, offline screen memory, Windows Recall alternative, Rewind alternative, open source screen history, RapidOCR, SQLite FTS5, privacy shield, PII redaction, Turkish folded search, macOS Apple Silicon, Windows x64, Linux, 0 MB VRAM" />
+  <meta name="author" content="Andac Basaran" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="theme-color" content="#0A0A0D" />
+  <meta name="color-scheme" content="dark" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="LocalRecall" />
+  <meta property="og:url" content="https://localrecall.andacbasaran.com/" />
+  <meta property="og:locale" content="tr_TR" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:title" content="LocalRecall — Gördüğünüz Her Şey. Anında &amp; %100 Yerel Hafıza." />
+  <meta property="og:description" content="Buluta sıfır bayt gönderen, 0.64 ms yerel arama, 0 MB VRAM ve otomatik PII gizlilik kalkanıyla çalışan açık kaynak Windows Recall / Rewind alternatifi." />
+  <meta property="og:image" content="https://localrecall.andacbasaran.com/assets/ui_preview.png?v=1.0.0" />
+  <meta property="og:image:alt" content="LocalRecall Studio v1.0.0 — %100 Çevrimdışı Görsel Ekran Hafızası ve Gizlilik Kalkanı Arayüzü" />
+  <meta property="og:image:width" content="1140" />
+  <meta property="og:image:height" content="680" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="LocalRecall — Gördüğünüz Her Şey. Anında &amp; %100 Yerel Hafıza." />
+  <meta name="twitter:description" content="Buluta sıfır bayt gönderen, 0.64 ms yerel arama, 0 MB VRAM ve otomatik PII gizlilik kalkanıyla çalışan açık kaynak Windows Recall / Rewind alternatifi." />
+  <meta name="twitter:image" content="https://localrecall.andacbasaran.com/assets/ui_preview.png?v=1.0.0" />
+  <meta name="twitter:image:alt" content="LocalRecall Studio v1.0.0 — %100 Çevrimdışı Görsel Ekran Hafızası ve Gizlilik Kalkanı Arayüzü" />
+
+  <link rel="canonical" href="https://localrecall.andacbasaran.com/" />
+  <link rel="alternate" hreflang="tr" href="https://localrecall.andacbasaran.com/tr" />
+  <link rel="alternate" hreflang="en" href="https://localrecall.andacbasaran.com/en" />
+  <link rel="alternate" hreflang="x-default" href="https://localrecall.andacbasaran.com/" />
+
+  <link rel="icon" type="image/png" href="/assets/app_icon.png?v=1.0.0" />
+  <link rel="shortcut icon" href="/favicon.ico?v=1.0.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "LocalRecall",
+    "alternateName": "LocalRecall Photographic Screen Memory Studio",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Windows 10, Windows 11, macOS 13+ (Apple Silicon), Linux (x86_64)",
+    "softwareVersion": "1.0.0",
+    "inLanguage": ["en", "tr"],
+    "isAccessibleForFree": true,
+    "license": "https://opensource.org/licenses/MIT",
+    "url": "https://localrecall.andacbasaran.com/",
+    "downloadUrl": "https://github.com/Andacbasaran/LocalRecall/releases/latest",
+    "codeRepository": "https://github.com/Andacbasaran/LocalRecall",
+    "screenshot": "https://localrecall.andacbasaran.com/assets/ui_preview.png?v=1.0.0",
+    "description": "100% offline, privacy-first photographic screen memory (open-source Windows Recall and Rewind alternative) with 0.64 ms Turkish-folded FTS5 search, 0 MB VRAM RapidOCR, 8.3 µs automatic PII Privacy Shield, and 0.26 GB/month WebP storage.",
+    "featureList": [
+      "0.64 ms Turkish-folded SQLite FTS5 + RRF hybrid search across 10,000 captures",
+      "FrameDiffLock visual deduplication (1.25 ms/frame, 97% duplicate frames skipped)",
+      "0.26 GB/month ultra-compact WebP storage (31.3 KB/frame, 194x compression)",
+      "8.3 µs/frame Privacy & PII Shield with 100% block rate (Luhn cards, API keys, IBAN, OTP, 1Password, Incognito)",
+      "0 MB VRAM local RapidOCR ONNX CPU engine with live amber OCR bounding boxes",
+      "App-colored visual timeline scrubber, Quick-Recall global hotkey, and Panic Purge controls",
+      "Native Windows x64 installer, macOS Apple Silicon DMG, and Linux x86_64 archive"
+    ],
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Andac Basaran",
+      "url": "https://andacbasaran.com"
+    }
+  }
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0A0A0D;
+      --surface: #131318;
+      --surface-elevated: #1B1B22;
+      --border: #26262F;
+      --border-strong: #3E3E4B;
+      --text: #FAFAFA;
+      --muted: #A1A1AA;
+      --subtle: #71717A;
+      --accent: #38BDF8;
+      --accent-soft: rgba(56, 189, 248, 0.14);
+      --amber: #F59E0B;
+      --amber-soft: rgba(245, 158, 11, 0.16);
+      --emerald: #10B981;
+      --emerald-soft: rgba(16, 185, 129, 0.13);
+      --rose: #F43F5E;
+      --rose-soft: rgba(244, 63, 94, 0.14);
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Architectural dot-grid + GPU-composited cursor spotlight */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.065) 1px, transparent 1px);
+      background-size: 28px 28px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 45%, #000 35%, transparent 100%);
+    }
+
+    .cursor-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 520px;
+      height: 520px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.095) 0%, rgba(16, 185, 129, 0.03) 38%, transparent 70%);
+      transform: translate3d(-999px, -999px, 0);
+      will-change: transform, opacity;
+      transition: opacity 0.4s ease;
+    }
+
+    @media (pointer: coarse), (prefers-reduced-motion: reduce) {
+      .cursor-glow {
+        display: none;
+      }
+    }
+
+    /* Topbar */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      z-index: 50;
+      background: rgba(10, 10, 13, 0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    .brand img {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      display: block;
+      flex-shrink: 0;
+      transition: transform 0.25s var(--ease-spring);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .brand:hover img {
+        transform: scale(1.06) rotate(-2deg);
+      }
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .top-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color 0.18s ease;
+      white-space: nowrap;
+    }
+
+    .top-link:hover {
+      color: var(--text);
+    }
+
+    /* Compact Segmented Language Switcher */
+    .lang-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 2px;
+      border-radius: 7px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      min-block-size: 28px;
+      min-inline-size: 32px;
+      padding: 4px 8px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+    }
+
+    .lang-btn:hover {
+      color: var(--text);
+    }
+
+    .lang-btn[aria-pressed="true"] {
+      background: #25252E;
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    .btn-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--text);
+      border: 1px solid var(--text);
+      color: #09090B;
+      font-size: 0.82rem;
+      font-weight: 700;
+      min-block-size: 32px;
+      padding: 6px 14px;
+      border-radius: 7px;
+      white-space: nowrap;
+      transition: background-color 0.18s ease, transform 0.18s var(--ease-spring);
+    }
+
+    .btn-pill:hover {
+      background: #E4E4E7;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .btn-pill:hover {
+        transform: translateY(-1px);
+      }
+      .btn-pill:active {
+        transform: translateY(0) scale(0.98);
+      }
+    }
+
+    /* Right-side Scene Progress Rail */
+    .scene-rail {
+      position: fixed;
+      right: 22px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 45;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .rail-dot {
+      width: 8px;
+      height: 8px;
+      min-block-size: 24px;
+      min-inline-size: 24px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      padding: 0;
+    }
+
+    .rail-dot::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--border-strong);
+      transition: background-color 0.25s ease, transform 0.3s var(--ease-spring);
+    }
+
+    .rail-dot:hover::before {
+      background: var(--muted);
+    }
+
+    .rail-dot.active::before {
+      background: var(--accent);
+      transform: scaleY(3.2);
+    }
+
+    /* Stage & Scenes */
+    .stage {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      z-index: 10;
+    }
+
+    .scene {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 72px 24px 82px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .scene {
+        transform: translate3d(0, 24px, 0) scale(0.99);
+        transition:
+          opacity 0.45s var(--ease-out),
+          transform 0.55s var(--ease-out);
+      }
+
+      .scene.prev {
+        transform: translate3d(0, -24px, 0) scale(0.99);
+      }
+
+      .scene [data-reveal] {
+        opacity: 0;
+        transform: translate3d(0, 14px, 0);
+        transition:
+          opacity 0.5s var(--ease-out),
+          transform 0.6s var(--ease-out);
+      }
+
+      .scene.active [data-reveal] {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+
+      .scene.active [data-reveal="1"] { transition-delay: 40ms; }
+      .scene.active [data-reveal="2"] { transition-delay: 95ms; }
+      .scene.active [data-reveal="3"] { transition-delay: 150ms; }
+      .scene.active [data-reveal="4"] { transition-delay: 205ms; }
+      .scene.active [data-reveal="5"] { transition-delay: 260ms; }
+    }
+
+    .scene.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+
+    /* SCENE 0: HERO */
+    .logo-showcase {
+      margin-bottom: 18px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .logo-showcase img {
+      width: 76px;
+      height: 76px;
+      border-radius: 18px;
+      border: 1px solid var(--border-strong);
+      display: block;
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55);
+      transition: transform 0.35s var(--ease-spring), border-color 0.25s ease;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .logo-showcase::after {
+        content: "";
+        position: absolute;
+        inset: -8px;
+        border-radius: 24px;
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        pointer-events: none;
+        animation: logo-ring-breathe 4.2s ease-in-out infinite;
+      }
+
+      .logo-showcase:hover img {
+        transform: translateY(-3px) scale(1.04);
+        border-color: rgba(56, 189, 248, 0.62);
+      }
+    }
+
+    @keyframes logo-ring-breathe {
+      0%, 100% { opacity: 0.35; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.04); }
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .live-dot {
+        animation: pulse-dot 2.4s ease-in-out infinite;
+      }
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: 0.7; }
+    }
+
+    .eyebrow {
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .headline {
+      font-size: clamp(2rem, 4.7vw, 3.65rem);
+      font-weight: 800;
+      line-height: 1.07;
+      letter-spacing: -0.035em;
+      max-width: 820px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .headline--md {
+      font-size: clamp(1.48rem, 3.3vw, 2.45rem);
+      margin-bottom: 14px;
+    }
+
+    .headline--sm {
+      font-size: clamp(1.42rem, 2.9vw, 2.18rem);
+      margin-bottom: 11px;
+    }
+
+    .headline .accent-text {
+      color: var(--accent);
+      background: linear-gradient(120deg, #7DD3FC 0%, #38BDF8 55%, #10B981 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subhead {
+      font-size: clamp(0.94rem, 1.38vw, 1.06rem);
+      color: var(--muted);
+      max-width: 600px;
+      font-weight: 400;
+      line-height: 1.55;
+      margin-bottom: 24px;
+    }
+
+    /* CTAs */
+    .cta-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      background: var(--text);
+      color: #09090B;
+      border: 1px solid var(--text);
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      position: relative;
+      transition: background-color 0.18s ease, box-shadow 0.22s ease, transform 0.2s var(--ease-spring);
+    }
+
+    .btn-download:hover {
+      background: #EFEFF3;
+      box-shadow: 0 8px 24px rgba(56, 189, 248, 0.14);
+    }
+
+    .btn-download-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      background: var(--surface-elevated);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.2s var(--ease-spring);
+    }
+
+    .btn-download-secondary:hover {
+      background: #25252E;
+      border-color: var(--muted);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .btn-download:hover,
+      .btn-download-secondary:hover {
+        transform: translateY(-2px);
+      }
+      .btn-download:active,
+      .btn-download-secondary:active {
+        transform: translateY(0) scale(0.985);
+      }
+    }
+
+    .caption-small {
+      margin-top: 11px;
+      font-size: 0.79rem;
+      color: var(--subtle);
+      line-height: 1.45;
+    }
+
+    .caption-small a {
+      color: var(--muted);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .caption-small a:hover {
+      color: var(--text);
+    }
+
+    .specs-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      max-width: 780px;
+    }
+
+    .spec-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--muted);
+      white-space: nowrap;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .spec-pill strong {
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+    }
+
+    .spec-pill:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    .scroll-hint {
+      margin-top: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      color: var(--subtle);
+      font-family: inherit;
+      font-size: 0.76rem;
+      font-weight: 500;
+      cursor: pointer;
+      min-block-size: 28px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: color 0.18s ease;
+    }
+
+    .scroll-hint:hover {
+      color: var(--text);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .scroll-hint svg {
+        animation: float-down 2s ease-in-out infinite;
+      }
+    }
+
+    @keyframes float-down {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(4px); }
+    }
+
+    /* SCENE 1: INTERACTIVE TIME-MACHINE & PRIVACY SHIELD SIMULATOR */
+    .demo-card {
+      width: 100%;
+      max-width: 820px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.48);
+      text-align: left;
+    }
+
+    .demo-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .preset-pills {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .preset-btn {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      min-block-size: 28px;
+      padding: 4px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+    }
+
+    .preset-btn:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    .preset-btn[aria-pressed="true"] {
+      background: var(--accent-soft);
+      border-color: rgba(56, 189, 248, 0.55);
+      color: #BAE6FD;
+    }
+
+    .preset-btn[data-preset="2"][aria-pressed="true"] {
+      background: var(--emerald-soft);
+      border-color: rgba(16, 185, 129, 0.55);
+      color: #6EE7B7;
+    }
+
+    .demo-controls-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .key-trigger-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      min-block-size: 28px;
+      border-radius: 7px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      font-family: inherit;
+      font-size: 0.74rem;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+    }
+
+    .key-trigger-btn:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    .key-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 0.68rem;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #272731;
+      border: 1px solid var(--border-strong);
+      color: var(--accent);
+    }
+
+    .demo-pause-btn {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.74rem;
+      font-weight: 600;
+      min-block-size: 28px;
+      padding: 4px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: color 0.16s ease, border-color 0.16s ease;
+    }
+
+    .demo-pause-btn:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    /* Main Recall Viewport */
+    .recall-viewport {
+      position: relative;
+      padding: 12px 14px 12px;
+      border-radius: 12px;
+      background:
+        radial-gradient(ellipse 90% 80% at 50% 0%, rgba(56, 189, 248, 0.065), transparent 62%),
+        linear-gradient(180deg, #0D0E14 0%, #09090C 100%);
+      border: 1px solid var(--border-strong);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+      transition: border-color 0.25s ease;
+    }
+
+    .recall-viewport.shield-active {
+      background:
+        radial-gradient(ellipse 90% 80% at 50% 0%, rgba(16, 185, 129, 0.095), transparent 65%),
+        linear-gradient(180deg, #0A110E 0%, #090A0C 100%);
+      border-color: rgba(16, 185, 129, 0.45);
+    }
+
+    .scan-beam {
+      position: absolute;
+      inset: 0;
+      width: 34%;
+      background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.15), transparent);
+      transform: translate3d(-130%, 0, 0);
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .recall-viewport.shield-active .scan-beam {
+      background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.18), transparent);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .scan-beam.sweeping {
+        animation: ocr-sweep 0.55s var(--ease-out);
+      }
+    }
+
+    @keyframes ocr-sweep {
+      from { transform: translate3d(-130%, 0, 0); }
+      to { transform: translate3d(340%, 0, 0); }
+    }
+
+    .recall-hud {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 2;
+    }
+
+    .query-readout {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 10px;
+      border-radius: 7px;
+      background: rgba(19, 19, 26, 0.92);
+      border: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text);
+      min-width: 0;
+    }
+
+    .query-readout-tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--accent-soft);
+      color: #7DD3FC;
+      letter-spacing: 0.03em;
+    }
+
+    .recall-viewport.shield-active .query-readout-tag {
+      background: var(--emerald-soft);
+      color: #6EE7B7;
+    }
+
+    .telemetry-strip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+
+    .telemetry-chip {
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .telemetry-chip.sky {
+      color: #7DD3FC;
+      border-color: rgba(56, 189, 248, 0.32);
+      background: rgba(56, 189, 248, 0.09);
+    }
+
+    .telemetry-chip.emerald {
+      color: #34D399;
+      border-color: rgba(16, 185, 129, 0.32);
+      background: rgba(16, 185, 129, 0.09);
+    }
+
+    /* Captured Screen Stage */
+    .screen-stage {
+      position: relative;
+      border-radius: 10px;
+      background: #101118;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      min-height: 158px;
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
+    }
+
+    .screen-stage-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 11px;
+      background: #161720;
+      border-bottom: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+
+    .stage-app-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .stage-app-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.64rem;
+      font-weight: 700;
+      color: #09090B;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .stage-title-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stage-badges {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .stage-pin-badge {
+      display: none;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 0.63rem;
+      font-weight: 700;
+      background: var(--amber-soft);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      color: #FCD34D;
+    }
+
+    .stage-pin-badge.visible {
+      display: inline-flex;
+    }
+
+    .stage-copy-toast {
+      position: absolute;
+      right: 10px;
+      bottom: 8px;
+      z-index: 6;
+      padding: 4px 9px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.94);
+      color: #04130D;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.22s var(--ease-out);
+      transform: translate3d(0, 6px, 0);
+    }
+
+    .stage-copy-toast.visible {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+
+    .screen-code-body {
+      padding: 11px 13px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.71rem, 1.15vw, 0.8rem);
+      line-height: 1.68;
+      color: #D4D4DC;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: opacity 0.2s ease;
+    }
+
+    .screen-code-body.changing {
+      opacity: 0.2;
+    }
+
+    .code-line {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .code-ln {
+      color: #525260;
+      user-select: none;
+      min-width: 18px;
+      text-align: right;
+      font-size: 0.68rem;
+      flex-shrink: 0;
+    }
+
+    .code-dim {
+      color: #8A8A9A;
+    }
+
+    /* Clickable Glowing Amber OCR Match Bounding Box */
+    .ocr-match-box {
+      display: inline;
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: 600;
+      line-height: 1.35;
+      color: #FDE68A;
+      background: rgba(245, 158, 11, 0.16);
+      border: 1.5px solid rgba(245, 158, 11, 0.88);
+      border-radius: 5px;
+      padding: 0 5px;
+      margin: 0 1px;
+      cursor: pointer;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.12), 0 0 14px rgba(245, 158, 11, 0.22);
+      transition: background-color 0.16s ease, box-shadow 0.18s ease, color 0.16s ease;
+    }
+
+    .ocr-match-box:hover {
+      background: rgba(245, 158, 11, 0.28);
+      color: #FEF3C7;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.24), 0 0 18px rgba(245, 158, 11, 0.34);
+    }
+
+    .stage-ocr-hint {
+      margin-top: 3px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.68rem;
+      color: var(--subtle);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stage-ocr-hint-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 2px;
+      background: var(--amber);
+      flex-shrink: 0;
+    }
+
+    /* Animated Emerald Privacy Shield Overlay */
+    .shield-overlay {
+      position: absolute;
+      inset: 30px 0 0 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 12px 16px;
+      text-align: center;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(16, 185, 129, 0.16) 0%, rgba(8, 15, 12, 0.94) 72%);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s ease;
+    }
+
+    .recall-viewport.shield-active .shield-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .shield-icon-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      background: rgba(16, 185, 129, 0.16);
+      border: 1.5px solid rgba(16, 185, 129, 0.65);
+      color: #34D399;
+      box-shadow: 0 0 24px rgba(16, 185, 129, 0.28);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .recall-viewport.shield-active .shield-icon-wrap {
+        animation: shield-pulse 2.4s ease-in-out infinite;
+      }
+    }
+
+    @keyframes shield-pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 18px rgba(16, 185, 129, 0.24); }
+      50% { transform: scale(1.06); box-shadow: 0 0 28px rgba(16, 185, 129, 0.44); }
+    }
+
+    .shield-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #6EE7B7;
+      letter-spacing: -0.01em;
+    }
+
+    .shield-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: #A7F3D0;
+      opacity: 0.9;
+    }
+
+    .shield-redacted-pills {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .redacted-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #D1FAE5;
+    }
+
+    /* App-Colored Timeline Scrubber Ribbon */
+    .timeline-ribbon-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .timeline-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--subtle);
+    }
+
+    .timeline-ribbon {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 4px;
+      padding: 4px;
+      border-radius: 9px;
+      background: #0D0D12;
+      border: 1px solid var(--border);
+    }
+
+    .timeline-seg {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 5px 4px;
+      min-block-size: 36px;
+      border-radius: 6px;
+      border: 1.5px solid transparent;
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.68rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+      overflow: hidden;
+    }
+
+    .timeline-seg-bar {
+      width: 100%;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--seg-color, #38BDF8);
+      opacity: 0.62;
+      transition: opacity 0.16s ease, transform 0.18s var(--ease-spring);
+    }
+
+    .timeline-seg[data-shield="true"] .timeline-seg-bar {
+      background: repeating-linear-gradient(
+        -45deg,
+        #10B981,
+        #10B981 4px,
+        #065F46 4px,
+        #065F46 8px
+      );
+    }
+
+    .timeline-seg-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      line-height: 1.1;
+    }
+
+    .timeline-seg:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+    }
+
+    .timeline-seg:hover .timeline-seg-bar {
+      opacity: 0.9;
+    }
+
+    .timeline-seg[aria-pressed="true"] {
+      background: rgba(255, 255, 255, 0.085);
+      border-color: var(--text);
+      color: var(--text);
+    }
+
+    .timeline-seg[aria-pressed="true"] .timeline-seg-bar {
+      opacity: 1;
+      transform: scaleY(1.25);
+    }
+
+    /* Footer Operator Chips & Mode Switch */
+    .demo-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 11px;
+      flex-wrap: wrap;
+    }
+
+    .operator-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .operator-chip {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      min-block-size: 27px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+    }
+
+    .operator-chip:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    .operator-chip[aria-pressed="true"] {
+      background: var(--accent-soft);
+      border-color: rgba(56, 189, 248, 0.5);
+      color: #BAE6FD;
+    }
+
+    .operator-chip[data-op="pii"][aria-pressed="true"] {
+      background: var(--emerald-soft);
+      border-color: rgba(16, 185, 129, 0.5);
+      color: #6EE7B7;
+    }
+
+    .mode-switch {
+      display: inline-flex;
+      padding: 2px;
+      border-radius: 7px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      gap: 2px;
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.73rem;
+      font-weight: 600;
+      min-block-size: 26px;
+      padding: 3px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .mode-btn:hover {
+      color: var(--text);
+    }
+
+    .mode-btn[aria-pressed="true"] {
+      background: #272732;
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    /* SCENE 2: INTERACTIVE STUDIO 2.0 SHOWCASE */
+    .studio-showcase {
+      width: 100%;
+      max-width: 1040px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.56fr) minmax(270px, 1fr);
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 14px;
+      text-align: left;
+    }
+
+    .studio-perspective {
+      width: 100%;
+      perspective: 1200px;
+      display: flex;
+    }
+
+    .studio-frame {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      border-radius: 14px;
+      overflow: hidden;
+      background: linear-gradient(150deg, #1B1B24 0%, #111116 100%);
+      border: 1px solid var(--border-strong);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.58);
+      transform-style: preserve-3d;
+      transition: transform 0.25s var(--ease-out), border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .studio-frame:hover {
+      border-color: rgba(56, 189, 248, 0.45);
+      box-shadow: 0 28px 72px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(56, 189, 248, 0.12);
+    }
+
+    .window-chrome {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 13px;
+      background: #15151C;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .window-chrome-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .window-dots {
+      display: inline-flex;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .window-dots span {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .window-dots span:nth-child(1) { background: rgba(244, 63, 94, 0.58); }
+    .window-dots span:nth-child(2) { background: rgba(245, 158, 11, 0.58); }
+    .window-dots span:nth-child(3) { background: rgba(16, 185, 129, 0.58); }
+
+    .window-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .window-chrome-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .window-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: #34D399;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.28);
+    }
+
+    .window-zoom-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.71rem;
+      font-weight: 600;
+      min-block-size: 24px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
+    }
+
+    .window-zoom-btn:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: #25252F;
+    }
+
+    .studio-media-wrap {
+      position: relative;
+      flex: 1;
+      background: #0B0B0E;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Shrink-wraps exact rendered aspect ratio so hotspot coordinates stay 1:1 pixel-accurate */
+    .studio-media-stage {
+      position: relative;
+      display: inline-flex;
+      max-width: 100%;
+      line-height: 0;
+    }
+
+    .studio-shot {
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 36dvh;
+      object-fit: contain;
+      border-radius: 7px;
+      display: block;
+      background: #0C0C0E;
+      cursor: zoom-in;
+      transition: opacity 0.22s ease;
+    }
+
+    .studio-shot:not(.active) {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .studio-shot.active {
+      position: relative;
+      z-index: 1;
+      opacity: 1;
+    }
+
+    /* Interactive Hotspot Pins */
+    .hotspot-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .hotspot-pin {
+      position: absolute;
+      left: var(--x, 50%);
+      top: var(--y, 50%);
+      transform: translate(-50%, -50%);
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1.5px solid #E0F2FE;
+      background: rgba(56, 189, 248, 0.94);
+      color: #09090B;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      pointer-events: auto;
+      box-shadow: 0 4px 16px rgba(56, 189, 248, 0.45);
+      transition: transform 0.2s var(--ease-spring), background-color 0.18s ease, box-shadow 0.2s ease;
+    }
+
+    .hotspot-pin:hover,
+    .hotspot-pin[aria-pressed="true"] {
+      transform: translate(-50%, -50%) scale(1.14);
+      background: #7DD3FC;
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.28), 0 6px 20px rgba(56, 189, 248, 0.55);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .hotspot-pin::after {
+        content: "";
+        position: absolute;
+        inset: -5px;
+        border-radius: 999px;
+        border: 1.5px solid rgba(56, 189, 248, 0.65);
+        pointer-events: none;
+        animation: pin-ripple 2.4s ease-out infinite;
+      }
+    }
+
+    @keyframes pin-ripple {
+      0% { transform: scale(0.85); opacity: 0.8; }
+      100% { transform: scale(1.65); opacity: 0; }
+    }
+
+    .hotspot-callout {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 13px;
+      background: #14141B;
+      border-top: 1px solid var(--border);
+      font-size: 0.76rem;
+      line-height: 1.38;
+      color: var(--muted);
+    }
+
+    .hotspot-callout-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .hotspot-callout-badge {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      color: #7DD3FC;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+    }
+
+    .hotspot-callout strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Right Side Interactive Inspector Cards */
+    .studio-inspector {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .inspector-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      width: 100%;
+      padding: 11px 14px 11px 16px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      text-align: left;
+      font-family: inherit;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background-color 0.18s ease, border-color 0.2s ease;
+    }
+
+    .inspector-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 11px;
+      bottom: 11px;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: transparent;
+      transition: background-color 0.2s ease;
+    }
+
+    .inspector-card:hover {
+      background: #17171F;
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    .inspector-card[aria-selected="true"] {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.085) 0%, #171720 62%);
+      border-color: rgba(56, 189, 248, 0.48);
+      color: var(--text);
+    }
+
+    .inspector-card[aria-selected="true"]::before {
+      background: var(--accent);
+    }
+
+    .inspector-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .inspector-card-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .inspector-step-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: #23232D;
+      border: 1px solid var(--border-strong);
+      color: var(--muted);
+    }
+
+    .inspector-card[aria-selected="true"] .inspector-step-num {
+      background: var(--accent-soft);
+      border-color: rgba(56, 189, 248, 0.5);
+      color: #7DD3FC;
+    }
+
+    .inspector-card-desc {
+      font-size: 0.76rem;
+      line-height: 1.44;
+      color: var(--muted);
+    }
+
+    .inspector-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 2px;
+    }
+
+    .inspector-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .inspector-card[aria-selected="true"] .inspector-chip {
+      color: #E4E4E7;
+      border-color: #3A3A47;
+    }
+
+    .ecosystem-line {
+      margin-top: 6px;
+      font-size: 0.71rem;
+      color: #63636E;
+      letter-spacing: 0.01em;
+    }
+
+    .ecosystem-line strong {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* Native Fullscreen Lightbox Dialog (Top-Layer Animated + Scroll Containment) */
+    dialog:modal {
+      overscroll-behavior: contain;
+    }
+
+    dialog::backdrop {
+      overflow: hidden;
+      overscroll-behavior: contain;
+    }
+
+    .studio-lightbox {
+      margin: auto;
+      width: min(94vw, 1120px);
+      max-height: 92dvh;
+      padding: 0;
+      border-radius: 16px;
+      border: 1px solid var(--border-strong);
+      background: #121218;
+      color: var(--text);
+      box-shadow: 0 32px 96px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+      opacity: 0;
+      transition-property: opacity, transform, display, overlay;
+      transition-duration: 0.26s;
+      transition-timing-function: var(--ease-out);
+      transition-behavior: allow-discrete;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .studio-lightbox {
+        transform: scale(0.95);
+      }
+    }
+
+    .studio-lightbox[open]:where(:not([data-closing])) {
+      opacity: 1;
+    }
+
+    @starting-style {
+      .studio-lightbox[open]:where(:not([data-closing])) {
+        opacity: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .studio-lightbox[open]:where(:not([data-closing])) {
+        transform: scale(1);
+      }
+      @starting-style {
+        .studio-lightbox[open]:where(:not([data-closing])) {
+          transform: scale(0.95);
+        }
+      }
+    }
+
+    .studio-lightbox::backdrop {
+      background-color: rgba(4, 4, 7, 0);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition-property: background-color, display, overlay;
+      transition-duration: 0.26s;
+      transition-timing-function: ease-out;
+      transition-behavior: allow-discrete;
+    }
+
+    .studio-lightbox[open]:where(:not([data-closing]))::backdrop {
+      background-color: rgba(4, 4, 7, 0.82);
+    }
+
+    @starting-style {
+      .studio-lightbox[open]:where(:not([data-closing]))::backdrop {
+        background-color: rgba(4, 4, 7, 0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .studio-lightbox,
+      .studio-lightbox::backdrop {
+        transition-duration: 0.1s;
+      }
+    }
+
+    .lightbox-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #16161E;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .lightbox-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .lightbox-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .lightbox-btn {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      min-block-size: 30px;
+      padding: 5px 11px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .lightbox-btn:hover {
+      background: #292935;
+      border-color: var(--muted);
+    }
+
+    .lightbox-body {
+      padding: 14px;
+      background: #0A0A0D;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox-body img {
+      width: 100%;
+      height: auto;
+      max-height: 76dvh;
+      object-fit: contain;
+      border-radius: 8px;
+      display: block;
+    }
+
+    /* Flat Bottom Navigation Dock */
+    .bottom-dock {
+      position: fixed;
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 4px;
+      border-radius: 11px;
+      background: rgba(19, 19, 24, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .dock-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      min-block-size: 32px;
+      padding: 7px 16px;
+      border-radius: 7px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+    }
+
+    .dock-btn:hover {
+      color: var(--text);
+    }
+
+    .dock-btn.active {
+      background: #25252E;
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    @media (forced-colors: active) {
+      .btn-download,
+      .btn-download-secondary,
+      .btn-pill,
+      .lang-btn[aria-pressed="true"],
+      .preset-btn[aria-pressed="true"],
+      .operator-chip[aria-pressed="true"],
+      .mode-btn[aria-pressed="true"],
+      .timeline-seg[aria-pressed="true"],
+      .inspector-card[aria-selected="true"],
+      .dock-btn.active {
+        border: 2px solid ButtonText;
+      }
+      .studio-frame,
+      .demo-card,
+      .spec-pill,
+      .lang-switch,
+      .bottom-dock,
+      .ocr-match-box {
+        border: 1px solid CanvasText;
+      }
+      .headline .accent-text {
+        -webkit-text-fill-color: CanvasText;
+      }
+    }
+
+    @media (max-width: 860px) {
+      #scene-1,
+      #scene-2 {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+        padding-top: 72px;
+        padding-bottom: 84px;
+      }
+
+      .studio-showcase {
+        grid-template-columns: 1fr;
+        max-width: 580px;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .studio-inspector {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        overflow: visible;
+      }
+
+      .inspector-card {
+        min-width: 0;
+        padding: 8px 6px 9px;
+        align-items: center;
+        text-align: center;
+        gap: 4px;
+        border-radius: 10px;
+      }
+
+      .inspector-card::before {
+        left: 14px;
+        right: 14px;
+        top: auto;
+        bottom: 0;
+        width: auto;
+        height: 2.5px;
+        border-radius: 3px 3px 0 0;
+      }
+
+      .inspector-card-head {
+        justify-content: center;
+        width: 100%;
+      }
+
+      .inspector-card-title {
+        flex-direction: column;
+        gap: 4px;
+        font-size: 0.72rem;
+        line-height: 1.2;
+      }
+
+      .inspector-card-desc,
+      .inspector-chips,
+      .window-status {
+        display: none;
+      }
+
+      .window-chrome {
+        padding: 7px 10px;
+        gap: 6px;
+      }
+
+      .window-title {
+        font-size: 0.67rem;
+      }
+
+      .studio-media-wrap {
+        padding: 6px;
+      }
+
+      .studio-shot {
+        max-height: 30dvh;
+      }
+
+      .hotspot-callout {
+        padding: 8px 10px;
+        font-size: 0.72rem;
+        line-height: 1.35;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .topbar {
+        height: 56px;
+        padding: 0 14px;
+      }
+
+      .top-actions {
+        gap: 8px;
+      }
+
+      .hide-mobile,
+      .scene-rail {
+        display: none !important;
+      }
+
+      .scene {
+        padding: 64px 14px 78px;
+      }
+
+      #scene-1,
+      #scene-2 {
+        padding: 64px 14px 82px;
+      }
+
+      #scene-2 .eyebrow {
+        margin-bottom: 5px;
+      }
+
+      #scene-2 .headline--sm {
+        font-size: clamp(1.16rem, 5vw, 1.52rem);
+        margin-bottom: 9px;
+      }
+
+      .logo-showcase img {
+        width: 62px;
+        height: 62px;
+      }
+
+      .cta-group {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .btn-download,
+      .btn-download-secondary {
+        width: 100%;
+        max-width: 280px;
+        padding: 11px 18px;
+        font-size: 0.87rem;
+      }
+
+      #scene-2 .cta-group {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        max-width: 440px;
+      }
+
+      #scene-2 .btn-download,
+      #scene-2 .btn-download-secondary {
+        max-width: none;
+        padding: 9px 6px;
+        font-size: 0.74rem;
+        gap: 5px;
+      }
+
+      .window-dots {
+        display: none;
+      }
+
+      .hotspot-pin {
+        width: 24px;
+        height: 24px;
+        font-size: 0.68rem;
+      }
+
+      .studio-shot {
+        max-height: 25dvh;
+      }
+
+      .studio-lightbox {
+        width: 96vw;
+        border-radius: 12px;
+      }
+
+      .lightbox-bar {
+        flex-wrap: wrap;
+        padding: 10px 12px;
+        gap: 8px;
+      }
+
+      .lightbox-title {
+        font-size: 0.8rem;
+      }
+
+      .lightbox-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .lightbox-btn {
+        flex: 1;
+        text-align: center;
+        font-size: 0.74rem;
+        padding: 6px 8px;
+      }
+
+      .lightbox-body {
+        padding: 8px;
+      }
+
+      .demo-card {
+        padding: 12px 11px;
+      }
+
+      .timeline-ribbon {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .telemetry-strip {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body data-scene="0">
+
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="cursor-glow" id="cursor-glow" aria-hidden="true"></div>
+
+  <!-- Minimal Flat Topbar -->
+  <header class="topbar">
+    <button type="button" class="brand" id="brand-home-btn" aria-label="LocalRecall Ana Sayfa">
+      <img src="/assets/app_icon.png?v=1.0.0" alt="" width="30" height="30" />
+      <span>LocalRecall</span>
+    </button>
+
+    <div class="top-actions">
+      <a href="https://github.com/Andacbasaran/LocalRecall" target="_blank" rel="noopener" class="top-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <span class="hide-mobile">GitHub</span>
+      </a>
+      <a href="https://andacbasaran.com" target="_blank" rel="noopener" class="top-link hide-mobile">andacbasaran.com</a>
+
+      <div class="lang-switch" role="group" id="lang-switch" aria-label="Dil Seçimi">
+        <button type="button" class="lang-btn" data-lang="tr" lang="tr" aria-pressed="true">TR</button>
+        <button type="button" class="lang-btn" data-lang="en" lang="en" aria-pressed="false">EN</button>
+      </div>
+
+      <a href="/downloads/LocalRecall.exe" id="topbar-download-btn" class="btn-pill" download="LocalRecall.exe" data-i18n="topDownload">İndir</a>
+    </div>
+  </header>
+
+  <!-- Right-Edge Scene Progress Rail -->
+  <div class="scene-rail" aria-hidden="true">
+    <button type="button" class="rail-dot active" data-rail-target="0" tabindex="-1"></button>
+    <button type="button" class="rail-dot" data-rail-target="1" tabindex="-1"></button>
+    <button type="button" class="rail-dot" data-rail-target="2" tabindex="-1"></button>
+  </div>
+
+  <main class="stage" id="stage">
+
+    <!-- SCENE 0: OVERVIEW / HERO -->
+    <section class="scene active" id="scene-0">
+      <div class="logo-showcase" data-reveal="1">
+        <img src="/assets/app_icon.png?v=1.0.0" alt="LocalRecall Logo" width="76" height="76" fetchpriority="high" />
+      </div>
+
+      <div class="live-badge" data-reveal="1">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span data-i18n="heroBadge">v1.0.0 · Windows, macOS &amp; Linux</span>
+      </div>
+
+      <h1 class="headline" data-reveal="2">
+        <span data-i18n="heroTitleLine1">Gördüğünüz Her Şey.</span><br />
+        <span class="accent-text" data-i18n="heroTitleLine2">Anında &amp; %100 Yerel Hafıza.</span>
+      </h1>
+
+      <p class="subhead" data-reveal="3" data-i18n="heroSubhead">
+        Ekranınızı sessizce WebP karelerine ve RapidOCR metnine çevirir; 10.000 anlık görüntü içinde Türkçe katlamalı FTS5 aramayla 0.64 ms'de bulur — buluta sıfır bayt.
+      </p>
+
+      <div class="cta-group" data-reveal="4">
+        <a href="/downloads/LocalRecall.exe" class="btn-download" download="LocalRecall.exe">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+          <span data-i18n="heroWinBtn">Windows İçin İndir</span>
+        </a>
+        <a href="/downloads/LocalRecall-macOS.dmg" class="btn-download-secondary" download="LocalRecall-macOS.dmg">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.33c.64-.78 1.08-1.86.96-2.94-.93.04-2.06.62-2.72 1.4-.58.68-1.1 1.79-.96 2.84 1.04.08 2.09-.52 2.72-1.3z"/></svg>
+          <span data-i18n="heroMacBtn">macOS (Apple Silicon)</span>
+        </a>
+      </div>
+
+      <div class="caption-small" data-reveal="4">
+        <span data-i18n="heroCaptionPrefix">v1.0.0 · Windows x64, macOS M1–M4 &amp;</span>
+        <a href="/downloads/LocalRecall-Linux.tar.gz" download="LocalRecall-Linux.tar.gz">Linux (.tar.gz)</a>
+        <span>·</span>
+        <span data-i18n="heroCaptionMid">%100 Ücretsiz ve</span>
+        <a href="https://github.com/Andacbasaran/LocalRecall" target="_blank" rel="noopener" data-i18n="heroCaptionLink">Açık Kaynak (MIT)</a>
+      </div>
+
+      <div class="specs-row" data-reveal="5">
+        <div class="spec-pill"><strong id="latency-counter">0.64 ms</strong> <span data-i18n="specSearch">10K FTS5 Arama</span></div>
+        <div class="spec-pill"><strong>0 MB</strong> <span data-i18n="specVram">VRAM · %100 Çevrimdışı</span></div>
+        <div class="spec-pill"><strong>8.3 µs</strong> <span data-i18n="specShield">Otomatik PII Gizlilik Kalkanı</span></div>
+        <a href="https://github.com/Andacbasaran/LocalRecall" target="_blank" rel="noopener" class="spec-pill">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span data-i18n="specMit">Açık Kaynak MIT</span>
+        </a>
+      </div>
+
+      <button type="button" class="scroll-hint" id="scroll-next-btn" data-reveal="5">
+        <span data-i18n="heroExplore">Zaman makinesi simülatörünü dene</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </section>
+
+    <!-- SCENE 1: INTERACTIVE TIME-MACHINE & PRIVACY SHIELD SIMULATOR -->
+    <section class="scene" id="scene-1" inert>
+      <div class="eyebrow" data-reveal="1" data-i18n="simEyebrow">İnteraktif Zaman Makinesi &amp; Gizlilik Kalkanı</div>
+      <h2 class="headline headline--md" data-reveal="2">
+        <span data-i18n="simTitle1">Bir kısayol.</span>
+        <span class="accent-text" data-i18n="simTitle2">Anında görsel hafıza.</span>
+      </h2>
+
+      <div class="demo-card" data-reveal="3">
+        <div class="demo-toolbar">
+          <div class="preset-pills" role="group" id="scene-presets" aria-label="Anlık Arama Örnekleri">
+            <button type="button" class="preset-btn" data-preset="0" aria-pressed="true">"hybrid.py"</button>
+            <button type="button" class="preset-btn" data-preset="1" aria-pressed="false">"hizli" (TR Fold)</button>
+            <button type="button" class="preset-btn" data-preset="2" aria-pressed="false">"1Password / API Key"</button>
+          </div>
+
+          <div class="demo-controls-right">
+            <button type="button" class="key-trigger-btn" id="btn-sim-hotkey">
+              <span class="key-badge" id="sim-hotkey-badge">⌘⇧Space</span>
+              <span data-i18n="simHotkeyLabel">Hızlı Çağır</span>
+            </button>
+            <button type="button" class="demo-pause-btn" id="btn-demo-pause">Duraklat</button>
+          </div>
+        </div>
+
+        <div class="recall-viewport" id="recall-viewport">
+          <div class="scan-beam" id="scan-beam" aria-hidden="true"></div>
+
+          <div class="recall-hud">
+            <div class="query-readout">
+              <span class="query-readout-tag" id="hud-mode-tag">FTS5 + RRF</span>
+              <span id="hud-query-text">hybrid.py app:vscode</span>
+            </div>
+            <div class="telemetry-strip" aria-hidden="true">
+              <span class="telemetry-chip sky" id="tel-fts">FTS5 0.64 ms</span>
+              <span class="telemetry-chip" id="tel-dedup">97% Dedup</span>
+              <span class="telemetry-chip" id="tel-vram">0 MB VRAM</span>
+              <span class="telemetry-chip emerald" id="tel-shield">100% SHIELD</span>
+            </div>
+          </div>
+
+          <div class="screen-stage" id="screen-stage">
+            <div class="screen-stage-bar">
+              <div class="stage-app-meta">
+                <span class="stage-app-pill" id="stage-app-pill">VS Code</span>
+                <span class="stage-title-text" id="stage-window-title">src/localrecall/search/hybrid.py — LocalRecall</span>
+              </div>
+              <div class="stage-badges">
+                <span class="stage-pin-badge visible" id="stage-pin-badge">PIN</span>
+                <span id="stage-timestamp">09:02:58</span>
+              </div>
+            </div>
+
+            <div class="screen-code-body" id="screen-code-body">
+              <!-- Dynamically rendered captured OCR lines with clickable amber boxes -->
+            </div>
+
+            <div class="stage-copy-toast" id="stage-copy-toast" role="status" aria-live="polite"></div>
+
+            <!-- Animated Emerald Privacy Shield Overlay -->
+            <div class="shield-overlay" id="shield-overlay" aria-live="polite">
+              <div class="shield-icon-wrap" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+              </div>
+              <div class="shield-title" data-i18n="shieldOverlayTitle">Otomatik Engellendi &amp; PII Maskelendi</div>
+              <div class="shield-sub" data-i18n="shieldOverlaySub">Diske 0 Bayt Yazıldı · 8.3 µs · %100 Engel Oranı</div>
+              <div class="shield-redacted-pills">
+                <span class="redacted-tag">1Password [BLOCKED]</span>
+                <span class="redacted-tag">sk-proj-••••••••</span>
+                <span class="redacted-tag">LUHN •••• 8819</span>
+                <span class="redacted-tag">TR33 •••• IBAN</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="timeline-ribbon-wrap">
+            <div class="timeline-meta-row">
+              <span data-i18n="timelineLabel">UYGULAMA RENKLİ ZAMAN ÇİZELGESİ · GERİYE SAR</span>
+              <span id="timeline-storage-meta">31.3 KB WebP · 0.26 GB/mo</span>
+            </div>
+            <div class="timeline-ribbon" role="group" id="timeline-ribbon" aria-label="Zaman Çizelgesi Uygulamaları">
+              <button type="button" class="timeline-seg" data-moment="0" style="--seg-color: #38BDF8;" aria-pressed="true">
+                <span class="timeline-seg-bar" aria-hidden="true"></span>
+                <span class="timeline-seg-label">VS Code</span>
+              </button>
+              <button type="button" class="timeline-seg" data-moment="1" style="--seg-color: #3B82F6;" aria-pressed="false">
+                <span class="timeline-seg-bar" aria-hidden="true"></span>
+                <span class="timeline-seg-label">Chrome</span>
+              </button>
+              <button type="button" class="timeline-seg" data-moment="2" style="--seg-color: #EC4899;" aria-pressed="false">
+                <span class="timeline-seg-bar" aria-hidden="true"></span>
+                <span class="timeline-seg-label">Figma</span>
+              </button>
+              <button type="button" class="timeline-seg" data-moment="3" style="--seg-color: #A855F7;" aria-pressed="false">
+                <span class="timeline-seg-bar" aria-hidden="true"></span>
+                <span class="timeline-seg-label">Slack</span>
+              </button>
+              <button type="button" class="timeline-seg" data-moment="4" style="--seg-color: #10B981;" aria-pressed="false">
+                <span class="timeline-seg-bar" aria-hidden="true"></span>
+                <span class="timeline-seg-label">Terminal</span>
+              </button>
+              <button type="button" class="timeline-seg" data-moment="5" data-shield="true" style="--seg-color: #10B981;" aria-pressed="false">
+                <span class="timeline-seg-bar" aria-hidden="true"></span>
+                <span class="timeline-seg-label">1Password [Shield]</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo-footer">
+          <div class="operator-group" role="group" id="operator-group" aria-label="Arama Operatörleri">
+            <button type="button" class="operator-chip" data-op="app" aria-pressed="true">app:vscode</button>
+            <button type="button" class="operator-chip" data-op="pinned" aria-pressed="false">pinned:true</button>
+            <button type="button" class="operator-chip" data-op="pii" aria-pressed="false">PII Redact</button>
+          </div>
+
+          <div class="mode-switch" role="group" id="mode-switch" aria-label="Motor Modu">
+            <button type="button" class="mode-btn" data-mode="fts" aria-pressed="true">FTS5 + RRF</button>
+            <button type="button" class="mode-btn" data-mode="shield" aria-pressed="false" data-i18n="modeShield">Privacy Shield</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCENE 2: INTERACTIVE STUDIO 2.0 UI SHOWCASE & DOWNLOADS -->
+    <section class="scene" id="scene-2" inert>
+      <div class="eyebrow" data-reveal="1" data-i18n="studioEyebrow">LocalRecall Studio 2.0 · v1.0.0</div>
+      <h2 class="headline headline--sm" data-reveal="2">
+        <span data-i18n="studioTitle1">Sessiz. Anında.</span>
+        <span class="accent-text" data-i18n="studioTitle2">Tamamen sizin cihazınızda.</span>
+      </h2>
+
+      <div class="studio-showcase" data-reveal="3">
+        <!-- Left: 3D-Tilt Studio Frame with Real Screenshots & Pixel-Accurate Hotspots -->
+        <div class="studio-perspective">
+          <div class="studio-frame" id="studio-tilt-card">
+            <div class="window-chrome">
+              <div class="window-chrome-left">
+                <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                <span class="window-title" id="window-title-text">LocalRecall Studio · 1. Zaman Çizelgesi</span>
+              </div>
+              <div class="window-chrome-right">
+                <span class="window-status">● 0 MB VRAM · 0.64 ms</span>
+                <button type="button" class="window-zoom-btn" id="btn-open-lightbox">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                  <span data-i18n="zoomBtn">Tam Ekran</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="studio-media-wrap">
+              <div class="studio-media-stage" id="studio-media-stage">
+                <img class="studio-shot active" data-shot="0" src="/assets/ui_preview.png?v=1.0.0" alt="LocalRecall Studio — Zaman Çizelgesi ve Canlı OCR Arama" width="1140" height="680" loading="lazy" />
+                <img class="studio-shot" data-shot="1" src="/assets/ui_preview_privacy.png?v=1.0.0" alt="LocalRecall Studio — Gizlilik Kalkanı ve Panik Kontrolleri" width="1140" height="680" loading="lazy" />
+                <img class="studio-shot" data-shot="2" src="/assets/ui_preview_settings.png?v=1.0.0" alt="LocalRecall Studio — Ayarlar, CPU Profili ve Depolama Motoru" width="1140" height="680" loading="lazy" />
+
+                <div class="hotspot-layer" id="hotspot-layer">
+                  <button type="button" class="hotspot-pin" data-pin="0" style="--x: 74%; --y: 31%;" aria-pressed="true" aria-label="Feature 1">1</button>
+                  <button type="button" class="hotspot-pin" data-pin="1" style="--x: 64%; --y: 90%;" aria-pressed="false" aria-label="Feature 2">2</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="hotspot-callout" id="hotspot-callout">
+              <div class="hotspot-callout-main">
+                <span class="hotspot-callout-badge" id="callout-num">1</span>
+                <span><strong id="callout-title">Canlı OCR Eşleşme Kutuları:</strong> <span id="callout-desc">RapidOCR metni CPU'da yakalar ve eşleşen kelimeleri doğrudan ekran görüntüsü üzerinde kehribar kutularla işaretler.</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: 3 Interactive Studio Inspector Tabs -->
+        <div class="studio-inspector" role="tablist" id="preview-tablist" aria-label="Arayüz Sekmeleri">
+          <button type="button" role="tab" aria-selected="true" class="inspector-card" data-tab="0" id="tab-studio-0">
+            <div class="inspector-card-head">
+              <span class="inspector-card-title">
+                <span class="inspector-step-num">01</span>
+                <span data-i18n="tabTimeline">Zaman Çizelgesi &amp; Canlı Metin</span>
+              </span>
+            </div>
+            <p class="inspector-card-desc" data-i18n="tabTimelineDesc">0.64 ms Türkçe katlamalı FTS5 + RRF hibrit arama, kehribar OCR eşleşme kutuları ve uygulama renkli zaman şeridi.</p>
+            <div class="inspector-chips">
+              <span class="inspector-chip">0.64 ms FTS5</span>
+              <span class="inspector-chip">Live-Text OCR</span>
+              <span class="inspector-chip">⌘⇧Space</span>
+            </div>
+          </button>
+
+          <button type="button" role="tab" aria-selected="false" class="inspector-card" data-tab="1" id="tab-studio-1">
+            <div class="inspector-card-head">
+              <span class="inspector-card-title">
+                <span class="inspector-step-num">02</span>
+                <span data-i18n="tabPrivacy">Gizlilik Kalkanı &amp; Kasa</span>
+              </span>
+            </div>
+            <p class="inspector-card-desc" data-i18n="tabPrivacyDesc">Şifre yöneticisi &amp; gizli sekme engeli, 8.3 µs otomatik Luhn/API/IBAN maskeleme ve tek tıkla Panik Temizleme.</p>
+            <div class="inspector-chips">
+              <span class="inspector-chip">8.3 µs PII</span>
+              <span class="inspector-chip">100% Block</span>
+              <span class="inspector-chip">Panic Purge</span>
+            </div>
+          </button>
+
+          <button type="button" role="tab" aria-selected="false" class="inspector-card" data-tab="2" id="tab-studio-2">
+            <div class="inspector-card-head">
+              <span class="inspector-card-title">
+                <span class="inspector-step-num">03</span>
+                <span data-i18n="tabSettings">Ayarlar &amp; Motor</span>
+              </span>
+            </div>
+            <p class="inspector-card-desc" data-i18n="tabSettingsDesc">0 MB VRAM RapidOCR CPU motoru, %97 FrameDiffLock eleme, 0.26 GB/ay WebP kota politikası ve yerleşik hız testi.</p>
+            <div class="inspector-chips">
+              <span class="inspector-chip">0 MB VRAM</span>
+              <span class="inspector-chip">97% Dedup</span>
+              <span class="inspector-chip">0.26 GB/mo</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div class="cta-group" data-reveal="4">
+        <a href="/downloads/LocalRecall.exe" class="btn-download" download="LocalRecall.exe">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+          <span>Windows (.exe)</span>
+        </a>
+        <a href="/downloads/LocalRecall-macOS.dmg" class="btn-download-secondary" download="LocalRecall-macOS.dmg">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.33c.64-.78 1.08-1.86.96-2.94-.93.04-2.06.62-2.72 1.4-.58.68-1.1 1.79-.96 2.84 1.04.08 2.09-.52 2.72-1.3z"/></svg>
+          <span>macOS (.dmg)</span>
+        </a>
+        <a href="/downloads/LocalRecall-Linux.tar.gz" class="btn-download-secondary" download="LocalRecall-Linux.tar.gz">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3"/><path d="M13 15h4"/></svg>
+          <span>Linux (.tar.gz)</span>
+        </a>
+      </div>
+
+      <div class="caption-small" data-reveal="5">
+        <span data-i18n="studioCaptionPrefix">En güncel v1.0.0 sürümünü doğrudan indirir ·</span>
+        <a href="https://github.com/Andacbasaran/LocalRecall/releases/latest" target="_blank" rel="noopener" data-i18n="studioCaptionLink">Tüm Paketler &amp; SHA-256 (GitHub Releases)</a>
+      </div>
+      <div class="ecosystem-line" data-reveal="5">
+        SubVision AI · ClearMic · LocalDictate · LocalMinutes · <strong>LocalRecall</strong>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Native Fullscreen Studio Lightbox -->
+  <dialog id="studio-lightbox" class="studio-lightbox" closedby="any" aria-labelledby="lightbox-title">
+    <div class="lightbox-bar">
+      <h1 class="lightbox-title" id="lightbox-title">LocalRecall Studio · 1. Zaman Çizelgesi</h1>
+      <div class="lightbox-actions">
+        <button type="button" class="lightbox-btn" id="lightbox-prev" data-i18n="lightboxPrev">← Önceki</button>
+        <button type="button" class="lightbox-btn" id="lightbox-next" data-i18n="lightboxNext">Sonraki →</button>
+        <button type="button" class="lightbox-btn" id="lightbox-close" autofocus data-i18n="lightboxClose">Kapat</button>
+      </div>
+    </div>
+    <div class="lightbox-body">
+      <img id="lightbox-img" src="/assets/ui_preview.png?v=1.0.0" alt="LocalRecall Studio 2.0" width="1140" height="680" loading="lazy" />
+    </div>
+  </dialog>
+
+  <nav class="bottom-dock" id="bottom-dock" aria-label="Sahne Seçici">
+    <button type="button" class="dock-btn active" data-scene-target="0" aria-current="step" data-i18n="dockIntro">Tanıtım</button>
+    <button type="button" class="dock-btn" data-scene-target="1" data-i18n="dockSim">Simülatör</button>
+    <button type="button" class="dock-btn" data-scene-target="2" data-i18n="dockApp">Uygulama</button>
+  </nav>
+
+  <script>
+    window.__INITIAL_LANG__ = null;
+
+    const I18N = {
+      tr: {
+        pageTitle: "LocalRecall — Gördüğünüz Her Şey. Anında & %100 Yerel Hafıza.",
+        metaDescription: "Windows x64, macOS Apple Silicon ve Linux için 0.64 ms Türkçe katlamalı FTS5 arama, 0 MB VRAM RapidOCR, 8.3 µs otomatik PII Gizlilik Kalkanı ve ayda 0.26 GB WebP depolamalı %100 çevrimdışı açık kaynak görsel ekran hafızası.",
+        langSwitchLabel: "Dil Seçimi",
+        brandAria: "LocalRecall Ana Sayfa",
+        topDownload: "İndir",
+        heroBadge: "v1.0.0 · Windows, macOS & Linux",
+        heroTitleLine1: "Gördüğünüz Her Şey.",
+        heroTitleLine2: "Anında & %100 Yerel Hafıza.",
+        heroSubhead: "Ekranınızı sessizce WebP karelerine ve RapidOCR metnine çevirir; 10.000 anlık görüntü içinde Türkçe katlamalı FTS5 aramayla 0.64 ms'de bulur — buluta sıfır bayt.",
+        heroWinBtn: "Windows İçin İndir",
+        heroMacBtn: "macOS (Apple Silicon)",
+        heroCaptionPrefix: "v1.0.0 · Windows x64, macOS M1–M4 &",
+        heroCaptionMid: "%100 Ücretsiz ve",
+        heroCaptionLink: "Açık Kaynak (MIT)",
+        specSearch: "10K FTS5 Arama",
+        specVram: "VRAM · %100 Çevrimdışı",
+        specShield: "Otomatik PII Gizlilik Kalkanı",
+        specMit: "Açık Kaynak MIT",
+        heroExplore: "Zaman makinesi simülatörünü dene",
+        simEyebrow: "İnteraktif Zaman Makinesi & Gizlilik Kalkanı",
+        simTitle1: "Bir kısayol.",
+        simTitle2: "Anında görsel hafıza.",
+        presetsAria: "Anlık Arama Örnekleri",
+        simHotkeyLabel: "Hızlı Çağır",
+        pauseLabel: "Duraklat",
+        playLabel: "Oynat",
+        ocrClickHint: "Kopyalamak için kehribar OCR kutularına tıkla",
+        copiedToast: "✓ OCR metni kopyalandı",
+        shieldOverlayTitle: "Otomatik Engellendi & PII Maskelendi",
+        shieldOverlaySub: "Diske 0 Bayt Yazıldı · 8.3 µs · %100 Engel Oranı",
+        timelineLabel: "UYGULAMA RENKLİ ZAMAN ÇİZELGESİ · GERİYE SAR",
+        timelineAria: "Zaman Çizelgesi Uygulamaları",
+        operatorsAria: "Arama Operatörleri",
+        modeSwitchAria: "Motor Modu",
+        modeShield: "Gizlilik Kalkanı",
+        studioEyebrow: "LocalRecall Studio 2.0 · v1.0.0",
+        studioTitle1: "Sessiz. Anında.",
+        studioTitle2: "Tamamen sizin cihazınızda.",
+        previewTabsLabel: "Arayüz Sekmeleri",
+        zoomBtn: "Tam Ekran",
+        lightboxPrev: "← Önceki",
+        lightboxNext: "Sonraki →",
+        lightboxClose: "Kapat",
+        tabTimeline: "Zaman Çizelgesi & Canlı Metin",
+        tabTimelineDesc: "0.64 ms Türkçe katlamalı FTS5 + RRF hibrit arama, kehribar OCR eşleşme kutuları ve uygulama renkli zaman şeridi.",
+        tabPrivacy: "Gizlilik Kalkanı & Kasa",
+        tabPrivacyDesc: "Şifre yöneticisi & gizli sekme engeli, 8.3 µs otomatik Luhn/API/IBAN maskeleme ve tek tıkla Panik Temizleme.",
+        tabSettings: "Ayarlar & Motor",
+        tabSettingsDesc: "0 MB VRAM RapidOCR CPU motoru, %97 FrameDiffLock eleme, 0.26 GB/ay WebP kota politikası ve yerleşik hız testi.",
+        shotAlts: [
+          "LocalRecall Studio — Zaman Çizelgesi ve Canlı OCR Arama",
+          "LocalRecall Studio — Gizlilik Kalkanı ve Panik Kontrolleri",
+          "LocalRecall Studio — Ayarlar, CPU Profili ve Depolama Motoru"
+        ],
+        studioCaptionPrefix: "En güncel v1.0.0 sürümünü doğrudan indirir ·",
+        studioCaptionLink: "Tüm Paketler & SHA-256 (GitHub Releases)",
+        dockAria: "Sahne Seçici",
+        dockIntro: "Tanıtım",
+        dockSim: "Simülatör",
+        dockApp: "Uygulama"
+      },
+      en: {
+        pageTitle: "LocalRecall — Everything You Saw. Recalled in 0.64 ms, 100% Local.",
+        metaDescription: "100% offline, privacy-first photographic screen memory for Windows x64, macOS Apple Silicon, and Linux. 0.64 ms FTS5 search across 10,000 captures, 0 MB VRAM RapidOCR, 8.3 µs auto PII redaction, and 0.26 GB/month WebP storage.",
+        langSwitchLabel: "Language Switcher",
+        brandAria: "LocalRecall Home",
+        topDownload: "Download",
+        heroBadge: "v1.0.0 · Windows, macOS & Linux",
+        heroTitleLine1: "Everything You Saw.",
+        heroTitleLine2: "Recalled in 0.64 ms, 100% Local.",
+        heroSubhead: "Quietly indexes your screen into compact WebP frames and RapidOCR text; searches 10,000 captures in 0.64 ms with automatic PII blocking and zero cloud bytes.",
+        heroWinBtn: "Download for Windows",
+        heroMacBtn: "macOS (Apple Silicon)",
+        heroCaptionPrefix: "v1.0.0 · Windows x64, macOS M1–M4 &",
+        heroCaptionMid: "100% Free &",
+        heroCaptionLink: "Open Source (MIT)",
+        specSearch: "10K FTS5 Search",
+        specVram: "VRAM · 100% Offline",
+        specShield: "Auto PII Privacy Shield",
+        specMit: "Open Source MIT",
+        heroExplore: "Try time-machine simulator",
+        simEyebrow: "Interactive Time-Machine & Privacy Shield",
+        simTitle1: "One hotkey.",
+        simTitle2: "Instant visual memory.",
+        presetsAria: "Instant Query Presets",
+        simHotkeyLabel: "Quick Recall",
+        pauseLabel: "Pause",
+        playLabel: "Play",
+        ocrClickHint: "Click any glowing amber OCR box to copy extracted text",
+        copiedToast: "✓ Copied OCR text",
+        shieldOverlayTitle: "Auto-Blocked & PII Redacted",
+        shieldOverlaySub: "0 Bytes Written to Disk · 8.3 µs · 100% Block Rate",
+        timelineLabel: "APP-COLORED TIMELINE SCRUBBER · REWIND",
+        timelineAria: "Timeline App Segments",
+        operatorsAria: "Search Operators",
+        modeSwitchAria: "Engine Mode",
+        modeShield: "Privacy Shield",
+        studioEyebrow: "LocalRecall Studio 2.0 · v1.0.0",
+        studioTitle1: "Quiet. Instant.",
+        studioTitle2: "100% on your machine.",
+        previewTabsLabel: "Interface Tabs",
+        zoomBtn: "Fullscreen",
+        lightboxPrev: "← Prev",
+        lightboxNext: "Next →",
+        lightboxClose: "Close",
+        tabTimeline: "Timeline & Live-Text Recall",
+        tabTimelineDesc: "0.64 ms Turkish-folded FTS5 + RRF hybrid search, amber OCR bounding boxes, and app-colored timeline scrubbing.",
+        tabPrivacy: "Privacy Shield & Vault",
+        tabPrivacyDesc: "Password manager & incognito guard, 8.3 µs Luhn/API/IBAN redaction, and one-click Panic Purge controls.",
+        tabSettings: "Settings & Engine",
+        tabSettingsDesc: "0 MB VRAM RapidOCR CPU engine, 97% FrameDiffLock dedup, 0.26 GB/mo WebP quota controls, and built-in benchmark.",
+        shotAlts: [
+          "LocalRecall Studio — Timeline & Live-Text OCR Recall",
+          "LocalRecall Studio — Privacy Shield & Panic Vault Controls",
+          "LocalRecall Studio — Settings, CPU Profile & Storage Engine"
+        ],
+        studioCaptionPrefix: "Direct download for latest v1.0.0 ·",
+        studioCaptionLink: "All Packages & SHA-256 (GitHub Releases)",
+        dockAria: "Scene Navigation",
+        dockIntro: "Overview",
+        dockSim: "Simulator",
+        dockApp: "Studio UI"
+      }
+    };
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let activeLang = "tr";
+    let demoPaused = prefersReducedMotion;
+    const pauseBtn = document.getElementById('btn-demo-pause');
+
+    function getCookieLang() {
+      const m = document.cookie.match(/(?:^|;\s*)lr_lang=(tr|en)(?:;|$)/i);
+      return m ? m[1].toLowerCase() : null;
+    }
+
+    function detectClientLang() {
+      const path = window.location.pathname.replace(/\/+$/, "");
+      if (path === "/tr") return "tr";
+      if (path === "/en") return "en";
+
+      const params = new URLSearchParams(window.location.search);
+      const qLang = (params.get("lang") || "").toLowerCase();
+      if (qLang === "tr" || qLang === "en") return qLang;
+
+      try {
+        const stored = localStorage.getItem("lr_lang");
+        if (stored === "tr" || stored === "en") return stored;
+      } catch (_) {}
+
+      const cookieLang = getCookieLang();
+      if (cookieLang === "tr" || cookieLang === "en") return cookieLang;
+
+      if (window.__INITIAL_LANG__ === "tr" || window.__INITIAL_LANG__ === "en") {
+        return window.__INITIAL_LANG__;
+      }
+
+      const langs = Array.isArray(navigator.languages) && navigator.languages.length
+        ? navigator.languages
+        : [navigator.language || ""];
+      for (const raw of langs) {
+        const code = String(raw || "").toLowerCase();
+        if (code === "tr" || code.startsWith("tr-")) return "tr";
+        if (code === "en" || code.startsWith("en-")) return "en";
+      }
+      return "en";
+    }
+
+    function syncPauseButtonLabel() {
+      if (!pauseBtn) return;
+      const dict = I18N[activeLang] || I18N.en;
+      pauseBtn.textContent = demoPaused ? dict.playLabel : dict.pauseLabel;
+    }
+
+    /* GPU-composited cursor spotlight */
+    const cursorGlow = document.getElementById("cursor-glow");
+    if (cursorGlow && !prefersReducedMotion && window.matchMedia('(pointer: fine)').matches) {
+      let glowRaf = null;
+      let pointerX = -999;
+      let pointerY = -999;
+      window.addEventListener("pointermove", (e) => {
+        pointerX = e.clientX - 260;
+        pointerY = e.clientY - 260;
+        if (!glowRaf) {
+          glowRaf = requestAnimationFrame(() => {
+            cursorGlow.style.opacity = "1";
+            cursorGlow.style.transform = `translate3d(${pointerX}px, ${pointerY}px, 0)`;
+            glowRaf = null;
+          });
+        }
+      }, { passive: true });
+      document.addEventListener("pointerleave", () => {
+        cursorGlow.style.opacity = "0";
+      });
+    }
+
+    /* Smooth decimal count-up for 0.64 ms FTS5 hero metric */
+    const latencyEl = document.getElementById("latency-counter");
+    if (latencyEl && !prefersReducedMotion) {
+      const targetMs = 0.64;
+      const startMs = 0.12;
+      const startTs = performance.now();
+      const duration = 720;
+      const tick = (now) => {
+        const progress = Math.min(1, (now - startTs) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const val = startMs + (targetMs - startMs) * eased;
+        latencyEl.textContent = `${val.toFixed(2)} ms`;
+        if (progress < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    /* Platform-aware topbar download & Quick-Recall hotkey badge */
+    (function detectPlatform() {
+      const ua = navigator.platform || navigator.userAgent || '';
+      const isMac = /Mac|iPhone|iPad/i.test(ua);
+      const isLinux = /Linux|X11/i.test(ua) && !/Android/i.test(navigator.userAgent || '');
+
+      const topBtn = document.getElementById('topbar-download-btn');
+      if (topBtn) {
+        if (isMac) {
+          topBtn.href = '/downloads/LocalRecall-macOS.dmg';
+          topBtn.setAttribute('download', 'LocalRecall-macOS.dmg');
+        } else if (isLinux) {
+          topBtn.href = '/downloads/LocalRecall-Linux.tar.gz';
+          topBtn.setAttribute('download', 'LocalRecall-Linux.tar.gz');
+        }
+      }
+
+      const hotkeyBadge = document.getElementById('sim-hotkey-badge');
+      if (hotkeyBadge) {
+        hotkeyBadge.textContent = isMac ? '⌘⇧Space' : 'Ctrl+Shift+Space';
+      }
+    })();
+
+    /* Scene navigation */
+    let currentScene = 0;
+    const totalScenes = 3;
+    let isTransitioning = false;
+
+    function goScene(index) {
+      if (index < 0 || index >= totalScenes || index === currentScene) return;
+      isTransitioning = true;
+      currentScene = index;
+      document.body.setAttribute('data-scene', String(currentScene));
+
+      for (let i = 0; i < totalScenes; i++) {
+        const el = document.getElementById('scene-' + i);
+        el.classList.remove('active', 'prev');
+        if (i === currentScene) {
+          el.classList.add('active');
+          el.removeAttribute('inert');
+        } else {
+          if (i < currentScene) el.classList.add('prev');
+          el.setAttribute('inert', '');
+        }
+      }
+
+      document.querySelectorAll('.dock-btn').forEach((b, i) => {
+        const isCurrent = i === currentScene;
+        b.classList.toggle('active', isCurrent);
+        if (isCurrent) b.setAttribute('aria-current', 'step');
+        else b.removeAttribute('aria-current');
+      });
+
+      document.querySelectorAll('.rail-dot').forEach((d, i) => {
+        d.classList.toggle('active', i === currentScene);
+      });
+
+      setTimeout(() => { isTransitioning = false; }, 480);
+    }
+
+    document.getElementById('brand-home-btn')?.addEventListener('click', () => goScene(0));
+    document.getElementById('scroll-next-btn')?.addEventListener('click', () => goScene(1));
+    document.querySelectorAll('.dock-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        goScene(Number.parseInt(btn.getAttribute('data-scene-target') || '0', 10));
+      });
+    });
+    document.querySelectorAll('.rail-dot').forEach((dot) => {
+      dot.addEventListener('click', () => {
+        goScene(Number.parseInt(dot.getAttribute('data-rail-target') || '0', 10));
+      });
+    });
+
+    /* Interactive Time-Machine & Privacy Shield Simulator (Scene 1) */
+    const TIMELINE_MOMENTS = [
+      {
+        id: 0,
+        preset: 0,
+        app: "VS Code",
+        appColor: "#38BDF8",
+        windowTitle: "src/localrecall/search/hybrid.py — LocalRecall",
+        query: "hybrid.py app:vscode",
+        modeTag: "FTS5 + RRF",
+        ftsText: "FTS5 0.64 ms",
+        dedupText: "97% Dedup",
+        timestamp: "09:02:58",
+        pinned: true,
+        shield: false,
+        operator: "app",
+        lines: [
+          { ln: "14", parts: [{ t: "class HybridSearchEngine:  # 100% Offline SQLite FTS5", dim: true }] },
+          { ln: "15", parts: [{ t: "  path = \"" }, { match: "src/localrecall/search/hybrid.py" }, { t: "\"" }] },
+          { ln: "16", parts: [{ t: "  def search(self, query, mode=" }, { match: "'hybrid'" }, { t: ") -> list[Hit]:" }] },
+          { ln: "17", parts: [{ t: "    return reciprocal_rank_fusion(fts5_hits, ngram_fuzzy)", dim: true }] }
+        ]
+      },
+      {
+        id: 1,
+        preset: 1,
+        app: "Chrome",
+        appColor: "#3B82F6",
+        windowTitle: "GitHub PR #48 — Turkish-Folded FTS5 & RapidOCR Engine",
+        query: "hizli (TR Fold: ı→i, ş→s, ğ→g)",
+        modeTag: "TR FOLD",
+        ftsText: "FTS5 0.58 ms",
+        dedupText: "97% Dedup",
+        timestamp: "08:47:19",
+        pinned: false,
+        shield: false,
+        operator: null,
+        lines: [
+          { ln: "01", parts: [{ t: "# LocalRecall v1.0.0 — " }, { match: "hızlı ekran hafızası" }] },
+          { ln: "02", parts: [{ t: "Türkçe karakter eşleştirme: \"hizli\" → " }, { match: "hızlı" }, { t: ", \"sifre\" → şifre" }] },
+          { ln: "03", parts: [{ t: "10.000 ekran yakalamada p50 FTS5 sorgu süresi: " }, { match: "0.64 ms" }] },
+          { ln: "04", parts: [{ t: "RapidOCR ONNX CPU: 0 MB VRAM · 31.3 KB/kare WebP", dim: true }] }
+        ]
+      },
+      {
+        id: 2,
+        preset: null,
+        app: "Figma",
+        appColor: "#EC4899",
+        windowTitle: "LocalRecall Studio 2.0 — Studio Graphite Design Tokens",
+        query: "pinned:true \"Studio Graphite\"",
+        modeTag: "PINNED",
+        ftsText: "FTS5 0.41 ms",
+        dedupText: "97% Dedup",
+        timestamp: "08:21:04",
+        pinned: true,
+        shield: false,
+        operator: "pinned",
+        lines: [
+          { ln: "01", parts: [{ t: "Surface Tokens · " }, { match: "Studio Graphite (#0A0A0D / #131318)" }] },
+          { ln: "02", parts: [{ t: "Primary Accent: Sky Blue #38BDF8 · OCR Highlight: " }, { match: "#F59E0B" }] },
+          { ln: "03", parts: [{ t: "Privacy Shield Emerald #10B981 · Panic Wipe Rose #F43F5E", dim: true }] },
+          { ln: "04", parts: [{ t: "Exported 1140×680 Retina previews for v1.0.0 launch", dim: true }] }
+        ]
+      },
+      {
+        id: 3,
+        preset: null,
+        app: "Slack",
+        appColor: "#A855F7",
+        windowTitle: "#eng-release — LocalRecall v1.0.0 Launch Checklist",
+        query: "app:slack \"0.26 GB\"",
+        modeTag: "FTS5 + RRF",
+        ftsText: "FTS5 0.52 ms",
+        dedupText: "97% Dedup",
+        timestamp: "07:54:12",
+        pinned: false,
+        shield: false,
+        operator: null,
+        lines: [
+          { ln: "01", parts: [{ t: "@andac: FrameDiffLock benchmark verified on M1 Pro:", dim: true }] },
+          { ln: "02", parts: [{ t: "  • Diff check: " }, { match: "1.25 ms/frame" }, { t: " · " }, { match: "97% skipped" }] },
+          { ln: "03", parts: [{ t: "  • WebP storage: 31.3 KB/frame → " }, { match: "0.26 GB / month" }] },
+          { ln: "04", parts: [{ t: "  • All Windows/macOS/Linux CI builds green ✓", dim: true }] }
+        ]
+      },
+      {
+        id: 4,
+        preset: null,
+        app: "Terminal",
+        appColor: "#10B981",
+        windowTitle: "zsh — python scripts/benchmark.py --captures 10000",
+        query: "app:terminal \"benchmark\"",
+        modeTag: "FTS5 + RRF",
+        ftsText: "FTS5 0.64 ms",
+        dedupText: "97% Dedup",
+        timestamp: "07:18:45",
+        pinned: false,
+        shield: false,
+        operator: null,
+        lines: [
+          { ln: "$", parts: [{ t: "python scripts/benchmark.py --captures 10000", dim: true }] },
+          { ln: "→", parts: [{ t: "FTS5 10k p50: " }, { match: "0.64 ms" }, { t: "  |  1k p50: 0.14 ms" }] },
+          { ln: "→", parts: [{ t: "PII Redact: " }, { match: "8.3 µs/frame" }, { t: "  |  Block Rate: " }, { match: "100.0%" }] },
+          { ln: "→", parts: [{ t: "GPU VRAM: 0 MB  |  WebP Compression: 194×", dim: true }] }
+        ]
+      },
+      {
+        id: 5,
+        preset: 2,
+        app: "1Password",
+        appColor: "#10B981",
+        windowTitle: "1Password — Production Secrets & Billing [SHIELD ACTIVE]",
+        query: "1Password / API Key / Luhn Card",
+        modeTag: "PRIVACY SHIELD",
+        ftsText: "SHIELD 8.3 µs",
+        dedupText: "0 Bytes Disk",
+        timestamp: "06:55:30",
+        pinned: false,
+        shield: true,
+        operator: "pii",
+        lines: [
+          { ln: "01", parts: [{ t: "OPENAI_API_KEY = [REDACTED_API_KEY]", dim: true }] },
+          { ln: "02", parts: [{ t: "CORPORATE_CARD = [REDACTED_LUHN_CARD]", dim: true }] },
+          { ln: "03", parts: [{ t: "TR_IBAN        = [REDACTED_IBAN]", dim: true }] },
+          { ln: "04", parts: [{ t: "OTP_2FA_CODE   = [REDACTED_OTP]", dim: true }] }
+        ]
+      }
+    ];
+
+    const PRESET_TO_MOMENT = [0, 1, 5];
+    let activeMomentIdx = 0;
+    let activePresetCycleIdx = 0;
+    let toastTimer = null;
+
+    const recallViewport = document.getElementById('recall-viewport');
+    const scanBeam = document.getElementById('scan-beam');
+    const hudModeTag = document.getElementById('hud-mode-tag');
+    const hudQueryText = document.getElementById('hud-query-text');
+    const telFts = document.getElementById('tel-fts');
+    const telDedup = document.getElementById('tel-dedup');
+    const stageAppPill = document.getElementById('stage-app-pill');
+    const stageWindowTitle = document.getElementById('stage-window-title');
+    const stagePinBadge = document.getElementById('stage-pin-badge');
+    const stageTimestamp = document.getElementById('stage-timestamp');
+    const screenCodeBody = document.getElementById('screen-code-body');
+    const stageCopyToast = document.getElementById('stage-copy-toast');
+
+    function triggerScanSweep() {
+      if (!scanBeam || prefersReducedMotion) return;
+      scanBeam.classList.remove('sweeping');
+      void scanBeam.offsetWidth;
+      scanBeam.classList.add('sweeping');
+    }
+
+    function showCopyToast(copiedText) {
+      if (!stageCopyToast) return;
+      const dict = I18N[activeLang] || I18N.en;
+      stageCopyToast.textContent = `${dict.copiedToast}: "${copiedText}"`;
+      stageCopyToast.classList.add('visible');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        stageCopyToast.classList.remove('visible');
+      }, 1700);
+    }
+
+    function copyOcrText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => {});
+      }
+      showCopyToast(text);
+    }
+
+    function renderMomentLines(moment) {
+      if (!screenCodeBody) return;
+      const dict = I18N[activeLang] || I18N.en;
+      screenCodeBody.textContent = '';
+
+      for (const line of moment.lines) {
+        const row = document.createElement('div');
+        row.className = 'code-line';
+
+        const ln = document.createElement('span');
+        ln.className = 'code-ln';
+        ln.textContent = line.ln;
+        row.appendChild(ln);
+
+        const textWrap = document.createElement('span');
+        for (const part of line.parts) {
+          if (part.match) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ocr-match-box';
+            btn.textContent = part.match;
+            btn.addEventListener('click', () => copyOcrText(part.match));
+            textWrap.appendChild(btn);
+          } else {
+            const span = document.createElement('span');
+            if (part.dim) span.className = 'code-dim';
+            span.textContent = part.t;
+            textWrap.appendChild(span);
+          }
+        }
+        row.appendChild(textWrap);
+        screenCodeBody.appendChild(row);
+      }
+
+      if (!moment.shield) {
+        const hint = document.createElement('div');
+        hint.className = 'stage-ocr-hint';
+        const dot = document.createElement('span');
+        dot.className = 'stage-ocr-hint-dot';
+        dot.setAttribute('aria-hidden', 'true');
+        const label = document.createElement('span');
+        label.textContent = dict.ocrClickHint;
+        hint.appendChild(dot);
+        hint.appendChild(label);
+        screenCodeBody.appendChild(hint);
+      }
+    }
+
+    function selectMoment(momentIdx, animate = true) {
+      const moment = TIMELINE_MOMENTS[momentIdx];
+      if (!moment) return;
+      activeMomentIdx = momentIdx;
+      if (moment.preset !== null) activePresetCycleIdx = moment.preset;
+
+      document.querySelectorAll('.preset-btn').forEach((btn, i) => {
+        btn.setAttribute('aria-pressed', String(moment.preset === i));
+      });
+      document.querySelectorAll('.timeline-seg').forEach((seg, i) => {
+        seg.setAttribute('aria-pressed', String(i === momentIdx));
+      });
+      document.querySelectorAll('.operator-chip').forEach((chip) => {
+        const op = chip.getAttribute('data-op');
+        chip.setAttribute('aria-pressed', String(op === moment.operator));
+      });
+      document.querySelectorAll('.mode-btn').forEach((btn) => {
+        const m = btn.getAttribute('data-mode');
+        btn.setAttribute('aria-pressed', String(moment.shield ? m === 'shield' : m === 'fts'));
+      });
+
+      const applyDom = () => {
+        if (recallViewport) recallViewport.classList.toggle('shield-active', moment.shield);
+        if (hudModeTag) hudModeTag.textContent = moment.modeTag;
+        if (hudQueryText) hudQueryText.textContent = moment.query;
+        if (telFts) telFts.textContent = moment.ftsText;
+        if (telDedup) telDedup.textContent = moment.dedupText;
+        if (stageAppPill) {
+          stageAppPill.textContent = moment.app;
+          stageAppPill.style.background = moment.appColor;
+        }
+        if (stageWindowTitle) stageWindowTitle.textContent = moment.windowTitle;
+        if (stagePinBadge) stagePinBadge.classList.toggle('visible', Boolean(moment.pinned));
+        if (stageTimestamp) stageTimestamp.textContent = moment.timestamp;
+        renderMomentLines(moment);
+        if (screenCodeBody) screenCodeBody.classList.remove('changing');
+      };
+
+      if (animate && !prefersReducedMotion) {
+        triggerScanSweep();
+        if (screenCodeBody) screenCodeBody.classList.add('changing');
+        setTimeout(applyDom, 150);
+      } else {
+        applyDom();
+      }
+    }
+
+    function cycleNextPreset() {
+      activePresetCycleIdx = (activePresetCycleIdx + 1) % PRESET_TO_MOMENT.length;
+      selectMoment(PRESET_TO_MOMENT[activePresetCycleIdx], true);
+    }
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const presetIdx = Number.parseInt(btn.getAttribute('data-preset') || '0', 10);
+        const targetMoment = PRESET_TO_MOMENT[presetIdx] ?? 0;
+        selectMoment(targetMoment, true);
+      });
+    });
+
+    document.querySelectorAll('.timeline-seg').forEach((seg) => {
+      seg.addEventListener('click', () => {
+        const mIdx = Number.parseInt(seg.getAttribute('data-moment') || '0', 10);
+        selectMoment(mIdx, true);
+      });
+    });
+
+    document.querySelectorAll('.operator-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const op = chip.getAttribute('data-op');
+        if (op === 'app') selectMoment(0, true);
+        else if (op === 'pinned') selectMoment(2, true);
+        else if (op === 'pii') selectMoment(5, true);
+      });
+    });
+
+    document.querySelectorAll('.mode-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-mode');
+        if (mode === 'shield') selectMoment(5, true);
+        else selectMoment(activeMomentIdx === 5 ? 0 : activeMomentIdx, true);
+      });
+    });
+
+    document.getElementById('btn-sim-hotkey')?.addEventListener('click', cycleNextPreset);
+
+    pauseBtn?.addEventListener('click', () => {
+      demoPaused = !demoPaused;
+      syncPauseButtonLabel();
+    });
+
+    setInterval(() => {
+      if (demoPaused || currentScene !== 1) return;
+      cycleNextPreset();
+    }, 4200);
+
+    /* Studio 2.0 Preview Inspector, Accurate Hotspots, 3D Tilt & Native Lightbox (Scene 2) */
+    const STUDIO_TABS = [
+      {
+        img: "/assets/ui_preview.png?v=1.0.0",
+        title: {
+          tr: "LocalRecall Studio · 1. Zaman Çizelgesi",
+          en: "LocalRecall Studio · 1. Timeline & Recall"
+        },
+        pins: [
+          {
+            x: "74%",
+            y: "31%",
+            title: {
+              tr: "Canlı OCR Eşleşme Kutuları:",
+              en: "Live-Text OCR Match Boxes:"
+            },
+            desc: {
+              tr: "RapidOCR metni CPU'da yakalar ve eşleşen kelimeleri doğrudan ekran görüntüsü üzerinde kehribar kutularla işaretler.",
+              en: "RapidOCR extracts text on CPU and draws glowing amber match boxes directly over your screenshot."
+            }
+          },
+          {
+            x: "64%",
+            y: "90%",
+            title: {
+              tr: "Uygulama Renkli Zaman Çizelgesi:",
+              en: "App-Colored Timeline Scrubber:"
+            },
+            desc: {
+              tr: "VS Code, Chrome, Figma ve Terminal arasında renk kodlu şeritte saniyeler içinde geriye sar ve anlık görüntüye zıpla.",
+              en: "Scrub across VS Code, Chrome, Figma, and Terminal captures on a color-coded visual ribbon."
+            }
+          }
+        ]
+      },
+      {
+        img: "/assets/ui_preview_privacy.png?v=1.0.0",
+        title: {
+          tr: "LocalRecall Studio · 2. Gizlilik Kalkanı",
+          en: "LocalRecall Studio · 2. Privacy Shield"
+        },
+        pins: [
+          {
+            x: "25%",
+            y: "37%",
+            title: {
+              tr: "Otomatik Kalkan & PII Maskeleme:",
+              en: "Auto Guard & PII Redaction:"
+            },
+            desc: {
+              tr: "1Password, gizli sekmeler, Luhn kart numaraları, API anahtarları ve IBAN diske yazılmadan 8.3 µs'de engellenir.",
+              en: "1Password, Incognito tabs, Luhn cards, API keys, and IBANs are blocked or redacted locally in 8.3 µs."
+            }
+          },
+          {
+            x: "52%",
+            y: "90%",
+            title: {
+              tr: "Panik Gizlilik Kontrolleri:",
+              en: "Panic Privacy Controls:"
+            },
+            desc: {
+              tr: "Tek tıkla kaydı 15 dk / 1 saat duraklat veya son 15 dk, 1 saat ya da bugünkü tüm anları SQLite ve diskten sil.",
+              en: "Instantly pause capture for 15m / 1h or permanently shred recent captures from SQLite and disk."
+            }
+          }
+        ]
+      },
+      {
+        img: "/assets/ui_preview_settings.png?v=1.0.0",
+        title: {
+          tr: "LocalRecall Studio · 3. Ayarlar & Motor",
+          en: "LocalRecall Studio · 3. Settings & Engine"
+        },
+        pins: [
+          {
+            x: "70%",
+            y: "20%",
+            title: {
+              tr: "0 MB VRAM · Akıllı CPU Profili:",
+              en: "0 MB VRAM · Auto CPU Profile:"
+            },
+            desc: {
+              tr: "İşlemcini otomatik algılar (Apple Silicon / x64), ONNX iş parçacığı bütçesini sıfır GPU yüküyle dengeler.",
+              en: "Auto-detects your CPU (Apple Silicon / x64) and tunes ONNX thread budgets with zero GPU contention."
+            }
+          },
+          {
+            x: "44%",
+            y: "58%",
+            title: {
+              tr: "FrameDiffLock & WebP Depolama:",
+              en: "FrameDiffLock & WebP Storage:"
+            },
+            desc: {
+              tr: "1.25 ms fark kontrolüyle %97 tekrar eden kareyi atlar; 31.3 KB WebP ile ayda yalnızca ~0.26 GB yer kaplar.",
+              en: "Skips 97% duplicate frames in 1.25 ms/frame and stores 31.3 KB WebP frames — just ~0.26 GB per month."
+            }
+          }
+        ]
+      }
+    ];
+
+    let activeStudioTab = 0;
+    let activePinIdx = 0;
+
+    function renderStudioHotspot(pinIdx) {
+      const tab = STUDIO_TABS[activeStudioTab];
+      if (!tab) return;
+      activePinIdx = pinIdx;
+      const pinData = tab.pins[pinIdx] || tab.pins[0];
+      const lang = activeLang === "tr" ? "tr" : "en";
+
+      const numEl = document.getElementById("callout-num");
+      const titleEl = document.getElementById("callout-title");
+      const descEl = document.getElementById("callout-desc");
+      if (numEl) numEl.textContent = String(pinIdx + 1);
+      if (titleEl) titleEl.textContent = pinData.title[lang];
+      if (descEl) descEl.textContent = pinData.desc[lang];
+
+      document.querySelectorAll(".hotspot-pin").forEach((el, i) => {
+        const isCurrent = i === pinIdx;
+        el.setAttribute("aria-pressed", String(isCurrent));
+        const pinLabel = tab.pins[i]?.title[lang]?.replace(/:$/, '') || `Feature ${i + 1}`;
+        el.setAttribute("aria-label", `${i + 1}: ${pinLabel}`);
+      });
+    }
+
+    function syncStudioMetaForLanguage() {
+      const tab = STUDIO_TABS[activeStudioTab];
+      if (!tab) return;
+      const lang = activeLang === "tr" ? "tr" : "en";
+      const dict = I18N[lang] || I18N.en;
+      const winTitle = document.getElementById("window-title-text");
+      const lbTitle = document.getElementById("lightbox-title");
+      const lbImg = document.getElementById("lightbox-img");
+      if (winTitle) winTitle.textContent = tab.title[lang];
+      if (lbTitle) lbTitle.textContent = tab.title[lang];
+      if (lbImg && dict.shotAlts[activeStudioTab]) {
+        lbImg.setAttribute("alt", dict.shotAlts[activeStudioTab]);
+      }
+
+      document.querySelectorAll('.studio-shot').forEach((imgEl, i) => {
+        if (dict.shotAlts[i]) imgEl.setAttribute('alt', dict.shotAlts[i]);
+      });
+
+      renderStudioHotspot(activePinIdx);
+    }
+
+    function switchPreviewTab(tabIdx) {
+      const tab = STUDIO_TABS[tabIdx];
+      if (!tab) return;
+      activeStudioTab = tabIdx;
+      activePinIdx = 0;
+
+      document.querySelectorAll('.studio-shot').forEach((imgEl, i) => {
+        imgEl.classList.toggle('active', i === tabIdx);
+      });
+
+      const lbImg = document.getElementById('lightbox-img');
+      if (lbImg) lbImg.src = tab.img;
+
+      document.querySelectorAll('.inspector-card').forEach((card, i) => {
+        card.setAttribute('aria-selected', String(i === tabIdx));
+      });
+
+      document.querySelectorAll('.hotspot-pin').forEach((pinEl, i) => {
+        const cfg = tab.pins[i];
+        if (!cfg) return;
+        pinEl.style.setProperty('--x', cfg.x);
+        pinEl.style.setProperty('--y', cfg.y);
+      });
+
+      syncStudioMetaForLanguage();
+    }
+
+    const inspectorCards = Array.from(document.querySelectorAll('.inspector-card'));
+    inspectorCards.forEach((card, idx) => {
+      card.addEventListener('click', () => {
+        switchPreviewTab(idx);
+      });
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const next = (idx + 1) % inspectorCards.length;
+          switchPreviewTab(next);
+          inspectorCards[next].focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const prev = (idx + inspectorCards.length - 1) % inspectorCards.length;
+          switchPreviewTab(prev);
+          inspectorCards[prev].focus();
+        }
+      });
+    });
+
+    document.querySelectorAll('.hotspot-pin').forEach((pinEl) => {
+      const idx = Number.parseInt(pinEl.getAttribute('data-pin') || '0', 10);
+      pinEl.addEventListener('click', () => renderStudioHotspot(idx));
+      pinEl.addEventListener('mouseenter', () => renderStudioHotspot(idx));
+    });
+
+    /* Native Dialog Lightbox with Top-Layer Exit & closedBy Fallbacks */
+    const studioLightbox = document.getElementById('studio-lightbox');
+    let supportsDisplayTransition;
+
+    function canTransitionDisplay() {
+      if (supportsDisplayTransition !== undefined) return supportsDisplayTransition;
+      if (!window.CSS?.supports?.('transition-behavior', 'allow-discrete') || !document.body) {
+        return false;
+      }
+      const probe = document.createElement('div');
+      probe.style.cssText = 'transition: display 1s allow-discrete !important; display: block;';
+      document.body.appendChild(probe);
+      getComputedStyle(probe).display;
+      probe.style.display = 'none';
+      supportsDisplayTransition = getComputedStyle(probe).display === 'block';
+      probe.remove();
+      return supportsDisplayTransition;
+    }
+
+    function supportsTopLayerExit() {
+      return window.CSS?.supports?.('overlay', 'auto') && canTransitionDisplay();
+    }
+
+    async function closeTopLayer(dialogEl) {
+      if (!dialogEl || !dialogEl.open) return;
+      if (!supportsTopLayerExit()) {
+        dialogEl.setAttribute('data-closing', '');
+        const animations = dialogEl.getAnimations({ subtree: true });
+        if (animations.length > 0) {
+          await Promise.race([
+            Promise.allSettled(animations.map((a) => a.finished)),
+            new Promise((r) => setTimeout(r, 600))
+          ]);
+        }
+        if (!dialogEl.hasAttribute('data-closing')) return;
+        dialogEl.removeAttribute('data-closing');
+      }
+      dialogEl.close();
+    }
+
+    function openLightbox() {
+      if (!studioLightbox || studioLightbox.open) return;
+      const tab = STUDIO_TABS[activeStudioTab];
+      const lbImg = document.getElementById('lightbox-img');
+      if (lbImg && tab) lbImg.src = tab.img;
+      syncStudioMetaForLanguage();
+      studioLightbox.showModal();
+    }
+
+    document.getElementById('btn-open-lightbox')?.addEventListener('click', openLightbox);
+    document.querySelectorAll('.studio-shot').forEach((imgEl) => {
+      imgEl.addEventListener('click', openLightbox);
+    });
+    document.getElementById('lightbox-close')?.addEventListener('click', () => closeTopLayer(studioLightbox));
+    document.getElementById('lightbox-prev')?.addEventListener('click', () => {
+      switchPreviewTab((activeStudioTab + STUDIO_TABS.length - 1) % STUDIO_TABS.length);
+    });
+    document.getElementById('lightbox-next')?.addEventListener('click', () => {
+      switchPreviewTab((activeStudioTab + 1) % STUDIO_TABS.length);
+    });
+
+    studioLightbox?.addEventListener('cancel', (e) => {
+      e.preventDefault();
+      closeTopLayer(studioLightbox);
+    });
+
+    studioLightbox?.addEventListener('close', () => {
+      studioLightbox.returnValue = '';
+    });
+
+    /* Fallback light-dismiss for browsers without native closedby="any" (e.g., Safari) */
+    if (!('closedBy' in HTMLDialogElement.prototype)) {
+      const isOutsideDialog = (e, dialog) => {
+        const r = dialog.getBoundingClientRect();
+        return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      };
+      for (const dialog of document.querySelectorAll('dialog[closedby="any"]')) {
+        let pressedOutside = false;
+        dialog.addEventListener('pointerdown', (e) => {
+          pressedOutside = isOutsideDialog(e, dialog);
+        });
+        dialog.addEventListener('pointerup', (e) => {
+          if (pressedOutside && isOutsideDialog(e, dialog)) {
+            closeTopLayer(dialog);
+          }
+          pressedOutside = false;
+        });
+      }
+    }
+
+    /* Wheel, Keyboard & Touch Scene Navigation */
+    window.addEventListener('wheel', (e) => {
+      if (isTransitioning || studioLightbox?.open) return;
+      if (Math.abs(e.deltaY) < 18) return;
+      if (e.deltaY > 0 && currentScene < totalScenes - 1) goScene(currentScene + 1);
+      else if (e.deltaY < 0 && currentScene > 0) goScene(currentScene - 1);
+    }, { passive: true });
+
+    window.addEventListener('keydown', (e) => {
+      if (studioLightbox?.open) {
+        if (e.key === 'ArrowLeft') {
+          switchPreviewTab((activeStudioTab + STUDIO_TABS.length - 1) % STUDIO_TABS.length);
+        } else if (e.key === 'ArrowRight') {
+          switchPreviewTab((activeStudioTab + 1) % STUDIO_TABS.length);
+        }
+        return;
+      }
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        if (currentScene < totalScenes - 1) goScene(currentScene + 1);
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        if (currentScene > 0) goScene(currentScene - 1);
+      } else if (
+        currentScene === 1 &&
+        e.code === 'Space' &&
+        !(e.target instanceof HTMLButtonElement || e.target instanceof HTMLAnchorElement)
+      ) {
+        e.preventDefault();
+        cycleNextPreset();
+      }
+    });
+
+    let touchStartY = 0;
+    window.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      if (isTransitioning || studioLightbox?.open || e.changedTouches.length === 0) return;
+      const activeSceneEl = document.getElementById('scene-' + currentScene);
+      if (activeSceneEl && activeSceneEl.scrollHeight > activeSceneEl.clientHeight + 8) {
+        const atTop = activeSceneEl.scrollTop <= 2;
+        const atBottom = activeSceneEl.scrollTop + activeSceneEl.clientHeight >= activeSceneEl.scrollHeight - 2;
+        const dy = touchStartY - e.changedTouches[0].clientY;
+        if (dy > 45 && !atBottom) return;
+        if (dy < -45 && !atTop) return;
+      }
+      const dy = touchStartY - e.changedTouches[0].clientY;
+      if (Math.abs(dy) > 45) {
+        if (dy > 0 && currentScene < totalScenes - 1) goScene(currentScene + 1);
+        else if (dy < 0 && currentScene > 0) goScene(currentScene - 1);
+      }
+    }, { passive: true });
+
+    /* 3D Perspective Tilt on Studio Showcase Card */
+    const tiltCard = document.getElementById('studio-tilt-card');
+    if (tiltCard && !prefersReducedMotion && window.matchMedia('(pointer: fine)').matches) {
+      tiltCard.addEventListener('pointermove', (e) => {
+        const rect = tiltCard.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        tiltCard.style.transform = `rotateX(${(-y * 4.5).toFixed(2)}deg) rotateY(${(x * 5.5).toFixed(2)}deg)`;
+      });
+      tiltCard.addEventListener('pointerleave', () => {
+        tiltCard.style.transform = 'rotateX(0deg) rotateY(0deg)';
+      });
+    }
+
+    /* Bilingual Client i18n Synchronization */
+    function applyLanguage(lang, persist = false) {
+      const normalized = lang === "tr" ? "tr" : "en";
+      activeLang = normalized;
+      const dict = I18N[normalized];
+
+      document.documentElement.lang = normalized;
+      document.title = dict.pageTitle;
+      const descMeta = document.querySelector('meta[name="description"]');
+      if (descMeta) descMeta.setAttribute("content", dict.metaDescription);
+
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        if (key && Object.prototype.hasOwnProperty.call(dict, key)) {
+          el.textContent = dict[key];
+        }
+      });
+
+      const ariaMap = [
+        ["lang-switch", dict.langSwitchLabel],
+        ["brand-home-btn", dict.brandAria],
+        ["scene-presets", dict.presetsAria],
+        ["timeline-ribbon", dict.timelineAria],
+        ["operator-group", dict.operatorsAria],
+        ["mode-switch", dict.modeSwitchAria],
+        ["preview-tablist", dict.previewTabsLabel],
+        ["bottom-dock", dict.dockAria]
+      ];
+      for (const [id, label] of ariaMap) {
+        const node = document.getElementById(id);
+        if (node) node.setAttribute("aria-label", label);
+      }
+
+      document.querySelectorAll(".lang-btn").forEach((btn) => {
+        const isSelected = btn.getAttribute("data-lang") === normalized;
+        btn.setAttribute("aria-pressed", String(isSelected));
+      });
+
+      syncPauseButtonLabel();
+      renderMomentLines(TIMELINE_MOMENTS[activeMomentIdx]);
+      syncStudioMetaForLanguage();
+
+      if (persist) {
+        try { localStorage.setItem("lr_lang", normalized); } catch (_) {}
+        document.cookie = `lr_lang=${normalized}; path=/; max-age=31536000; SameSite=Lax`;
+
+        const currentPath = window.location.pathname.replace(/\/+$/, "");
+        if (currentPath === "/tr" || currentPath === "/en") {
+          window.history.replaceState(null, "", `/${normalized}`);
+        }
+      }
+    }
+
+    document.querySelectorAll(".lang-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const targetLang = btn.getAttribute("data-lang");
+        if (targetLang && targetLang !== activeLang) {
+          applyLanguage(targetLang, true);
+        }
+      });
+    });
+
+    applyLanguage(detectClientLang(), false);
+    selectMoment(0, false);
+    switchPreviewTab(0);
+  </script>
+</body>
+</html>

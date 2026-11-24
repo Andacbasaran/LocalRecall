@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=LocalRecall
+GenericName=Offline Smart Screen Memory
+Comment=100% offline, privacy-first, 0 MB VRAM smart screen memory with instant OCR search and PII redaction
+Comment[tr]=%100 çevrimdışı, gizlilik odaklı, 0 MB VRAM akıllı ekran hafızası, anlık OCR arama ve PII maskeleme
+Exec=LocalRecall
+Icon=localrecall
+Terminal=false
+Categories=Utility;Office;
+Keywords=recall;screen;memory;ocr;search;privacy;offline;timeline;
+StartupWMClass=LocalRecall
+StartupNotify=true
