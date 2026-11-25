@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import sqlite3
 import threading
@@ -10,6 +11,22 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Sequence
+
+_SQLITE_IN_BATCH_SIZE = 500
+
+
+def _chmod_private(path: Path, is_dir: bool = False) -> None:
+    if os.name != "posix":
+        return
+    try:
+        os.chmod(path, 0o700 if is_dir else 0o600)
+    except OSError:
+        pass
+
+
+def _escape_like(value: str) -> str:
+    """Escapes SQLite LIKE wildcards (\\, %, _) for use with ESCAPE '\\'."""
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 _TR_FOLD_MAP = str.maketrans(
     {
@@ -129,7 +146,9 @@ class Database:
     def __init__(self, db_path: Path) -> None:
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        _chmod_private(self.db_path.parent, is_dir=True)
         self._lock = threading.RLock()
+        self._closed = False
         self._conn = sqlite3.connect(
             str(db_path),
             check_same_thread=False,
@@ -137,6 +156,13 @@ class Database:
         )
         self._conn.row_factory = sqlite3.Row
         self._init_schema()
+        self._secure_db_files()
+
+    def _secure_db_files(self) -> None:
+        for suffix in ("", "-wal", "-shm"):
+            p = Path(f"{self.db_path}{suffix}")
+            if p.exists():
+                _chmod_private(p, is_dir=False)
 
     def _init_schema(self) -> None:
         with self._lock:
@@ -253,7 +279,7 @@ class Database:
                         VALUES ('delete', old.id, old.app_name, old.window_title, old.ocr_text, old.ocr_text_folded, old.note);
                     END;
 
-                    CREATE TRIGGER captures_au AFTER UPDATE ON captures BEGIN
+                    CREATE TRIGGER captures_au AFTER UPDATE OF app_name, window_title, ocr_text, ocr_text_folded, note ON captures BEGIN
                         INSERT INTO captures_fts(captures_fts, rowid, app_name, window_title, ocr_text, ocr_text_folded, note)
                         VALUES ('delete', old.id, old.app_name, old.window_title, old.ocr_text, old.ocr_text_folded, old.note);
                         INSERT INTO captures_fts(rowid, app_name, window_title, ocr_text, ocr_text_folded, note)
@@ -263,11 +289,36 @@ class Database:
                     INSERT INTO captures_fts(captures_fts) VALUES('rebuild');
                     """
                 )
+            else:
+                # Migrate legacy unscoped captures_au trigger so archiving images doesn't thrash FTS5
+                trig_row = cur.execute(
+                    "SELECT sql FROM sqlite_master WHERE type='trigger' AND name='captures_au'"
+                ).fetchone()
+                trig_sql = str(trig_row["sql"] or "") if trig_row else ""
+                if "AFTER UPDATE OF" not in trig_sql.upper():
+                    cur.executescript(
+                        """
+                        DROP TRIGGER IF EXISTS captures_au;
+                        CREATE TRIGGER captures_au AFTER UPDATE OF app_name, window_title, ocr_text, ocr_text_folded, note ON captures BEGIN
+                            INSERT INTO captures_fts(captures_fts, rowid, app_name, window_title, ocr_text, ocr_text_folded, note)
+                            VALUES ('delete', old.id, old.app_name, old.window_title, old.ocr_text, old.ocr_text_folded, old.note);
+                            INSERT INTO captures_fts(rowid, app_name, window_title, ocr_text, ocr_text_folded, note)
+                            VALUES (new.id, new.app_name, new.window_title, new.ocr_text, new.ocr_text_folded, new.note);
+                        END;
+                        """
+                    )
 
             self._conn.commit()
 
     def close(self) -> None:
         with self._lock:
+            if self._closed:
+                return
+            self._closed = True
+            try:
+                self._conn.execute("PRAGMA optimize;")
+            except sqlite3.Error:
+                pass
             self._conn.close()
 
     @staticmethod
@@ -279,7 +330,7 @@ class Database:
             image_path=str(row["image_path"]),
             app_name=str(row["app_name"]),
             window_title=str(row["window_title"]),
-            ocr_text=str(row["ocr_text"]),
+            ocr_text=str(row["ocr_text"] if "ocr_text" in keys else ""),
             width=int(row["width"]),
             height=int(row["height"]),
             ocr_done=bool(row["ocr_done"]),
@@ -359,7 +410,7 @@ class Database:
                     """
                     UPDATE captures
                     SET ocr_text = ?, ocr_text_folded = ?, ocr_boxes = ?, ocr_done = 1,
-                        pii_redacted = ?, file_size_bytes = ?
+                        pii_redacted = MAX(pii_redacted, ?), file_size_bytes = ?
                     WHERE id = ?
                     """,
                     (ocr_text, folded, ocr_boxes, int(pii_redacted), int(file_size_bytes), capture_id),
@@ -368,7 +419,8 @@ class Database:
                 self._conn.execute(
                     """
                     UPDATE captures
-                    SET ocr_text = ?, ocr_text_folded = ?, ocr_boxes = ?, ocr_done = 1, pii_redacted = ?
+                    SET ocr_text = ?, ocr_text_folded = ?, ocr_boxes = ?, ocr_done = 1,
+                        pii_redacted = MAX(pii_redacted, ?)
                     WHERE id = ?
                     """,
                     (ocr_text, folded, ocr_boxes, int(pii_redacted), capture_id),
@@ -433,6 +485,7 @@ class Database:
         limit: int = 200,
         app_name: str | None = None,
         app_filter_like: str | None = None,
+        exclude_terms: Sequence[str] = (),
         start: datetime | None = None,
         end: datetime | None = None,
         pinned_only: bool = False,
@@ -443,8 +496,13 @@ class Database:
             clauses.append("app_name = ?")
             params.append(app_name)
         if app_filter_like:
-            clauses.append("LOWER(app_name) LIKE ?")
-            params.append(f"%{app_filter_like.strip().lower()}%")
+            clauses.append("LOWER(app_name) LIKE ? ESCAPE '\\'")
+            params.append(f"%{_escape_like(app_filter_like.strip().lower())}%")
+        for excl in exclude_terms:
+            ef = fold_text(excl)
+            if ef:
+                clauses.append("ocr_text_folded NOT LIKE ? ESCAPE '\\'")
+                params.append(f"%{_escape_like(ef)}%")
         if pinned_only:
             clauses.append("pinned = 1")
         if start is not None:
@@ -466,6 +524,7 @@ class Database:
         start: datetime | None = None,
         end: datetime | None = None,
         limit: int = 1000,
+        include_ocr: bool = False,
     ) -> list[CaptureRecord]:
         clauses: list[str] = []
         params: list[object] = []
@@ -477,9 +536,15 @@ class Database:
             params.append(end.isoformat(timespec="seconds"))
 
         where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        cols = (
+            "*"
+            if include_ocr
+            else "id, timestamp, image_path, app_name, window_title, width, height, "
+            "ocr_done, file_size_bytes, pinned, note, pii_redacted, image_archived"
+        )
         sql = f"""
             SELECT * FROM (
-                SELECT * FROM captures {where}
+                SELECT {cols} FROM captures {where}
                 ORDER BY timestamp DESC, id DESC
                 LIMIT ?
             ) sub
@@ -513,21 +578,11 @@ class Database:
                 limit=limit,
                 app_name=app_name,
                 app_filter_like=app_filter_like,
+                exclude_terms=exclude_terms,
                 start=start,
                 end=end,
                 pinned_only=pinned_only,
             )
-            if exclude_terms:
-                excl_folded = [fold_text(e) for e in exclude_terms if e.strip()]
-                records = [
-                    r
-                    for r in records
-                    if not any(
-                        ef in fold_text(f"{r.app_name} {r.window_title} {r.ocr_text} {r.note}")
-                        for ef in excl_folded
-                        if ef
-                    )
-                ]
             return [
                 SearchResult(record=r, snippet=(r.ocr_text or r.window_title)[:160], rank=0.0, match_type="recent")
                 for r in records
@@ -540,8 +595,8 @@ class Database:
             clauses.append("c.app_name = ?")
             params.append(app_name)
         if app_filter_like:
-            clauses.append("LOWER(c.app_name) LIKE ?")
-            params.append(f"%{app_filter_like.strip().lower()}%")
+            clauses.append("LOWER(c.app_name) LIKE ? ESCAPE '\\'")
+            params.append(f"%{_escape_like(app_filter_like.strip().lower())}%")
         if pinned_only:
             clauses.append("c.pinned = 1")
         if start is not None:
@@ -720,11 +775,13 @@ class Database:
                 return []
             ids = [int(r["id"]) for r in rows]
             paths = [str(r["image_path"]) for r in rows if r["image_path"]]
-            placeholders = ",".join("?" for _ in ids)
-            self._conn.execute(
-                f"UPDATE captures SET image_archived = 1, file_size_bytes = 0 WHERE id IN ({placeholders})",
-                ids,
-            )
+            for i in range(0, len(ids), _SQLITE_IN_BATCH_SIZE):
+                batch = ids[i : i + _SQLITE_IN_BATCH_SIZE]
+                placeholders = ",".join("?" for _ in batch)
+                self._conn.execute(
+                    f"UPDATE captures SET image_archived = 1, file_size_bytes = 0 WHERE id IN ({placeholders})",
+                    batch,
+                )
             self._conn.commit()
             return paths
 
@@ -759,11 +816,13 @@ class Database:
                 running -= max(1, int(r["file_size_bytes"]))
 
             if to_delete_ids:
-                placeholders = ",".join("?" for _ in to_delete_ids)
-                self._conn.execute(
-                    f"DELETE FROM captures WHERE id IN ({placeholders})",
-                    to_delete_ids,
-                )
+                for i in range(0, len(to_delete_ids), _SQLITE_IN_BATCH_SIZE):
+                    batch = to_delete_ids[i : i + _SQLITE_IN_BATCH_SIZE]
+                    placeholders = ",".join("?" for _ in batch)
+                    self._conn.execute(
+                        f"DELETE FROM captures WHERE id IN ({placeholders})",
+                        batch,
+                    )
                 self._conn.commit()
             return to_delete_paths
 

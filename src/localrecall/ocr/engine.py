@@ -95,26 +95,27 @@ class OCREngine:
             # Re-initialize lazily with new CPU thread budget
             self._engine = None
 
-    def _ensure_loaded(self) -> None:
-        if self._engine is not None:
-            return
+    def _get_engine(self):
         with self._lock:
-            if self._engine is not None:
-                return
-            from rapidocr_onnxruntime import RapidOCR
+            if self._engine is None:
+                from rapidocr_onnxruntime import RapidOCR
 
-            try:
-                self._engine = RapidOCR(
-                    intra_op_num_threads=self.intra_threads,
-                    inter_op_num_threads=self.inter_threads,
+                try:
+                    self._engine = RapidOCR(
+                        intra_op_num_threads=self.intra_threads,
+                        inter_op_num_threads=self.inter_threads,
+                    )
+                except TypeError:
+                    self._engine = RapidOCR()
+                logger.info(
+                    "RapidOCR (ONNX CPU) loaded (intra=%d, inter=%d, 0 MB VRAM).",
+                    self.intra_threads,
+                    self.inter_threads,
                 )
-            except TypeError:
-                self._engine = RapidOCR()
-            logger.info(
-                "RapidOCR (ONNX CPU) loaded (intra=%d, inter=%d, 0 MB VRAM).",
-                self.intra_threads,
-                self.inter_threads,
-            )
+            return self._engine
+
+    def _ensure_loaded(self) -> None:
+        self._get_engine()
 
     def extract(self, image_source: Path | str | Image.Image | np.ndarray) -> OCRResult:
         """
@@ -122,8 +123,8 @@ class OCREngine:
         Always decodes file paths via PIL -> RGB NumPy array to prevent Windows non-ASCII
         path crashes in OpenCV/RapidOCR (Bug #3 fix).
         """
-        self._ensure_loaded()
-        assert self._engine is not None
+        engine = self._get_engine()
+        assert engine is not None
 
         if isinstance(image_source, Image.Image):
             rgb = image_source.convert("RGB")
@@ -138,7 +139,7 @@ class OCREngine:
             img_h, img_w = int(image_source.shape[0]), int(image_source.shape[1])
             img_input = image_source
 
-        raw_result, _ = self._engine(img_input)
+        raw_result, _ = engine(img_input)
         if not raw_result or img_w <= 0 or img_h <= 0:
             return OCRResult(text="", boxes=[])
 
@@ -245,7 +246,11 @@ class OCRWorker:
         pending = self.db.get_pending_ocr(limit=limit)
         enqueued = 0
         for rec in pending:
-            img_path = resolve_path(rec.image_path)
+            try:
+                img_path = resolve_path(rec.image_path)
+            except ValueError:
+                self.db.update_ocr_text(rec.id, "", ocr_boxes="[]")
+                continue
             if not img_path.exists():
                 self.db.update_ocr_text(rec.id, "", ocr_boxes="[]")
                 continue
@@ -284,7 +289,7 @@ class OCRWorker:
                 if self.pii_redactor and self.pii_redactor.is_enabled:
                     clean_text, text_dets = self.pii_redactor.redact_text(res.text)
                     clean_boxes, blur_boxes, box_dets = self.pii_redactor.redact_ocr_boxes(res.boxes)
-                    all_dets = text_dets or box_dets
+                    all_dets = text_dets if len(text_dets) >= len(box_dets) else box_dets
 
                     if all_dets:
                         self.db.increment_metric("pii_redactions_count", len(all_dets))

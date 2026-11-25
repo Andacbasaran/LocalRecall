@@ -57,7 +57,7 @@ LocalRecall — macOS Quick Installation & Privacy Guide
    -> enable "LocalRecall" and restart the app.
 
 4. VAULT LOCATION (100% Local)
-   Your SQLite database and encrypted/WebP captures live locally at:
+   Your SQLite database and local WebP captures (0o600 user-only permissions) live locally at:
    ~/Library/Application Support/LocalRecall
 ========================================================================
 """
@@ -130,6 +130,14 @@ def build_app_bundle(root: Path, icns_path: Optional[Path], arch: str) -> Path:
         "onnxruntime",
         "--collect-submodules",
         "localrecall",
+        "--hidden-import",
+        "PyQt6.QtNetwork",
+        "--hidden-import",
+        "certifi",
+        "--hidden-import",
+        "mss",
+        "--hidden-import",
+        "PIL",
     ]
     if icns_path and icns_path.exists():
         cmd.extend(["--icon", str(icns_path), "--add-data", f"{icns_path}:assets"])

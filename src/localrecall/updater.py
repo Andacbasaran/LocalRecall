@@ -13,6 +13,7 @@ import ssl
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple
@@ -20,6 +21,52 @@ from typing import Callable, Dict, List, Optional, Tuple
 from localrecall import __repo__, __version__
 
 GITHUB_LATEST_RELEASE_URL = f"https://api.github.com/repos/{__repo__}/releases/latest"
+
+ALLOWED_UPDATE_HOSTS: frozenset[str] = frozenset(
+    {
+        "github.com",
+        "api.github.com",
+        "objects.githubusercontent.com",
+        "release-assets.githubusercontent.com",
+    }
+)
+
+
+def validate_update_url(url: str) -> str:
+    """Enforces HTTPS and the GitHub release host allowlist for all update requests/redirects."""
+    cleaned = (url or "").strip()
+    parsed = urllib.parse.urlparse(cleaned)
+    host = (parsed.hostname or "").lower()
+    if (
+        parsed.scheme.lower() != "https"
+        or host not in ALLOWED_UPDATE_HOSTS
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
+        raise ValueError(f"Blocked untrusted update URL: {cleaned}")
+    return cleaned
+
+
+class _SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Validates every HTTP redirect target against the HTTPS + GitHub host allowlist."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        resolved = urllib.parse.urljoin(req.full_url, newurl)
+        validate_update_url(resolved)
+        return super().redirect_request(req, fp, code, msg, headers, resolved)
+
+
+def _open_verified_url(
+    req: urllib.request.Request,
+    timeout: float,
+    context: Optional[ssl.SSLContext] = None,
+):
+    validate_update_url(req.full_url)
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPSHandler(context=context),
+        _SafeRedirectHandler(),
+    )
+    return opener.open(req, timeout=timeout)
 
 
 def _make_ssl_context() -> Optional[ssl.SSLContext]:
@@ -51,18 +98,41 @@ class UpdateInfo:
 
 def parse_semver(version_str: str) -> Tuple[int, int, int, int]:
     cleaned = (version_str or "").strip().lstrip("vV")
-    match = re.match(r"^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:[-+].+)?$", cleaned)
+    core = cleaned.split("+", 1)[0]
+    match = re.match(r"^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-(.+))?$", core)
     if not match:
         return (0, 0, 0, 0)
     major = int(match.group(1) or 0)
     minor = int(match.group(2) or 0)
     patch = int(match.group(3) or 0)
-    is_stable = 0 if "-" in cleaned else 1
+    is_stable = 0 if match.group(4) is not None else 1
     return (major, minor, patch, is_stable)
 
 
+def _semver_sort_key(
+    version_str: str,
+) -> Tuple[int, int, int, int, Tuple[Tuple[int, object], ...]]:
+    cleaned = (version_str or "").strip().lstrip("vV")
+    core = cleaned.split("+", 1)[0]
+    match = re.match(r"^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-(.+))?$", core)
+    if not match:
+        return (0, 0, 0, 0, ())
+    major = int(match.group(1) or 0)
+    minor = int(match.group(2) or 0)
+    patch = int(match.group(3) or 0)
+    prerelease = match.group(4)
+    if prerelease is None:
+        return (major, minor, patch, 1, ())
+    parts = tuple(
+        (0, int(tok)) if tok.isdigit() else (1, tok)
+        for tok in prerelease.split(".")
+        if tok != ""
+    )
+    return (major, minor, patch, 0, parts)
+
+
 def is_newer_version(latest: str, current: str) -> bool:
-    return parse_semver(latest) > parse_semver(current)
+    return _semver_sort_key(latest) > _semver_sort_key(current)
 
 
 def select_platform_asset(
@@ -76,7 +146,8 @@ def select_platform_asset(
 
     plat = (platform_name or sys.platform).lower()
     arch = (machine or platform.machine() or "").lower()
-    is_arm64 = arch in ("arm64", "aarch64")
+    is_arm64 = arch in ("arm64", "aarch64", "armv8", "armv8l")
+    is_x64 = arch in ("x86_64", "amd64", "x64")
 
     best_asset: Optional[Dict] = None
     best_score = -1
@@ -93,34 +164,49 @@ def select_platform_asset(
         low = name.lower()
 
         if "sha256" in low and low.endswith(".txt"):
-            if (plat == "darwin" and ("macos" in low or "darwin" in low)) or (
-                plat.startswith("linux") and "linux" in low
-            ):
+            is_mac_cs = "macos" in low or "darwin" in low
+            is_win_cs = "windows" in low or "win32" in low or "win64" in low or "-win" in low
+            is_lin_cs = "linux" in low
+            if plat == "darwin" and is_mac_cs:
                 checksum_platform = url
-            else:
+            elif plat == "win32" and is_win_cs:
+                checksum_platform = url
+            elif plat.startswith("linux") and is_lin_cs:
+                checksum_platform = url
+            elif not (is_mac_cs or is_win_cs or is_lin_cs):
                 checksum_generic = url
             continue
+
+        has_arm64_tag = any(tok in low for tok in ("arm64", "aarch64", "apple-silicon"))
+        has_x64_tag = any(tok in low for tok in ("x86_64", "amd64", "x64", "intel"))
+        has_universal_tag = "universal" in low
 
         score = -1
         if plat == "darwin":
             if low.endswith(".dmg"):
-                score = 10
-                if is_arm64 and ("arm64" in low or "apple-silicon" in low):
-                    score = 30
-                elif (not is_arm64) and ("x86_64" in low or "x64" in low or "intel" in low):
-                    score = 30
-                elif "universal" in low:
+                if has_universal_tag:
                     score = 20
-        elif plat == "win32":
-            if low.endswith(".exe"):
-                if "setup" in low:
-                    score = 30
+                elif has_arm64_tag and not has_x64_tag:
+                    score = 30 if is_arm64 else -1
+                elif has_x64_tag and not has_arm64_tag:
+                    score = 30 if is_x64 else -1
                 else:
-                    score = 15
+                    score = 10
+        elif plat == "win32":
+            if (has_arm64_tag and not has_x64_tag and not is_arm64) or (
+                has_x64_tag and not has_arm64_tag and not is_x64
+            ):
+                score = -1
+            elif low.endswith(".exe"):
+                score = 30 if "setup" in low else 15
             elif low.endswith(".zip") and "win" in low:
                 score = 10
         elif plat.startswith("linux"):
-            if low.endswith(".appimage"):
+            if (has_arm64_tag and not has_x64_tag and not is_arm64) or (
+                has_x64_tag and not has_arm64_tag and not is_x64
+            ):
+                score = -1
+            elif low.endswith(".appimage"):
                 score = 30
             elif low.endswith(".tar.gz") and "linux" in low:
                 score = 25
@@ -172,24 +258,27 @@ def check_for_updates(
     api_url: str = GITHUB_LATEST_RELEASE_URL,
     timeout_sec: float = 5.0,
 ) -> UpdateInfo:
-    req = urllib.request.Request(
-        api_url,
-        headers={
-            "Accept": "application/vnd.github+json",
-            "User-Agent": f"LocalRecall/{current_version}",
-        },
-    )
+    default_release_url = f"https://github.com/{__repo__}/releases/latest"
     try:
+        validated_api = validate_update_url(api_url)
+        req = urllib.request.Request(
+            validated_api,
+            headers={
+                "Accept": "application/vnd.github+json",
+                "User-Agent": f"LocalRecall/{current_version}",
+            },
+        )
         ctx = _make_ssl_context()
-        with urllib.request.urlopen(req, timeout=timeout_sec, context=ctx) as resp:
+        with _open_verified_url(req, timeout=timeout_sec, context=ctx) as resp:
             raw = resp.read().decode("utf-8", errors="replace")
         payload = json.loads(raw)
         tag_name = str(payload.get("tag_name") or "").strip()
         latest_ver = tag_name.lstrip("vV") or current_version
-        html_url = str(
-            payload.get("html_url")
-            or f"https://github.com/{__repo__}/releases/latest"
-        )
+        raw_html_url = str(payload.get("html_url") or default_release_url)
+        try:
+            html_url = validate_update_url(raw_html_url)
+        except ValueError:
+            html_url = default_release_url
         notes = str(payload.get("body") or "").strip()[:800]
         asset_name, asset_url, asset_size, checksum_url = select_platform_asset(
             payload.get("assets") or []
@@ -210,7 +299,7 @@ def check_for_updates(
             current_version=current_version,
             latest_version=current_version,
             is_update_available=False,
-            release_url=f"https://github.com/{__repo__}/releases/latest",
+            release_url=default_release_url,
             error=str(exc),
         )
 
@@ -226,21 +315,45 @@ def download_update_asset(
     if not info.has_direct_installer:
         raise RuntimeError("No direct installer package available for this platform.")
 
+    # Fail-closed: enforce HTTPS + GitHub host allowlist and mandatory SHA-256 manifest
+    validated_asset_url = validate_update_url(info.asset_url)
+    if not info.checksum_url:
+        raise RuntimeError("Missing SHA-256 checksum manifest URL; refusing unverified update.")
+    validated_checksum_url = validate_update_url(info.checksum_url)
+
     os.makedirs(dest_dir, exist_ok=True)
     safe_name = os.path.basename(info.asset_name)
     final_path = os.path.join(dest_dir, safe_name)
     part_path = final_path + ".part"
 
+    ctx = _make_ssl_context()
+
+    # Fetch and verify checksum manifest exists for this asset BEFORE accepting download
+    if status_cb:
+        status_cb("Fetching SHA-256 checksum manifest…")
+    try:
+        cs_req = urllib.request.Request(
+            validated_checksum_url,
+            headers={"User-Agent": f"LocalRecall/{info.current_version}"},
+        )
+        with _open_verified_url(cs_req, timeout=min(10.0, timeout_sec), context=ctx) as cs_resp:
+            sums_text = cs_resp.read().decode("utf-8", errors="replace")
+    except Exception as exc:
+        raise RuntimeError(f"Failed to fetch SHA-256 checksum manifest: {exc}") from exc
+
+    expected = parse_sha256sums(sums_text, safe_name)
+    if not expected:
+        raise RuntimeError(f"SHA-256 checksum manifest has no matching entry for {safe_name}.")
+
     req = urllib.request.Request(
-        info.asset_url,
+        validated_asset_url,
         headers={"User-Agent": f"LocalRecall/{info.current_version}"},
     )
     downloaded = 0
     total = int(info.asset_size or 0)
-    ctx = _make_ssl_context()
 
     try:
-        with urllib.request.urlopen(req, timeout=timeout_sec, context=ctx) as resp:
+        with _open_verified_url(req, timeout=timeout_sec, context=ctx) as resp:
             if total <= 0:
                 hdr_len = resp.headers.get("Content-Length")
                 if hdr_len and hdr_len.isdigit():
@@ -257,23 +370,10 @@ def download_update_asset(
                     if progress_cb:
                         progress_cb(downloaded, total)
 
-        if info.checksum_url:
-            if status_cb:
-                status_cb("Verifying SHA-256 checksum…")
-            try:
-                cs_req = urllib.request.Request(
-                    info.checksum_url,
-                    headers={"User-Agent": f"LocalRecall/{info.current_version}"},
-                )
-                with urllib.request.urlopen(cs_req, timeout=10.0, context=ctx) as cs_resp:
-                    sums_text = cs_resp.read().decode("utf-8", errors="replace")
-                expected = parse_sha256sums(sums_text, safe_name)
-                if expected and not verify_file_sha256(part_path, expected):
-                    raise RuntimeError("SHA-256 verification failed for downloaded update.")
-            except RuntimeError:
-                raise
-            except Exception:
-                pass
+        if status_cb:
+            status_cb("Verifying SHA-256 checksum…")
+        if not verify_file_sha256(part_path, expected):
+            raise RuntimeError("SHA-256 verification failed for downloaded update.")
 
         os.replace(part_path, final_path)
         return final_path
@@ -335,15 +435,26 @@ def apply_downloaded_update(installer_path: str) -> Tuple[bool, str]:
             script_body = f"""#!/bin/bash
 set -e
 OLD_PID={pid}
-while kill -0 "$OLD_PID" 2>/dev/null; do
-    sleep 0.3
-done
+SWAPPED=0
 cleanup() {{
+    EXIT_CODE=$?
+    if [ "$EXIT_CODE" -ne 0 ] && [ "$SWAPPED" -eq 1 ] && [ -d {q_app_old} ] && [ ! -d {q_app} ]; then
+        mv {q_app_old} {q_app} 2>/dev/null || true
+    fi
+    rm -rf {q_app_new} 2>/dev/null || true
     hdiutil detach {q_mnt} -quiet 2>/dev/null || true
     rmdir {q_mnt} 2>/dev/null || true
     rm -f {q_script} 2>/dev/null || true
 }}
 trap cleanup EXIT
+WAIT_COUNT=0
+while kill -0 "$OLD_PID" 2>/dev/null; do
+    WAIT_COUNT=$((WAIT_COUNT + 1))
+    if [ "$WAIT_COUNT" -ge 100 ]; then
+        exit 1
+    fi
+    sleep 0.3
+done
 hdiutil attach {q_dmg} -nobrowse -quiet -mountpoint {q_mnt}
 SRC_APP="$(find {q_mnt} -maxdepth 1 -name '*.app' -print -quit)"
 if [ -z "$SRC_APP" ]; then
@@ -355,8 +466,10 @@ ditto "$SRC_APP" {q_app_new}
 xattr -dr com.apple.quarantine {q_app_new} 2>/dev/null || true
 if [ -d {q_app} ]; then
     mv {q_app} {q_app_old}
+    SWAPPED=1
 fi
 mv {q_app_new} {q_app}
+SWAPPED=0
 rm -rf {q_app_old}
 rm -f {q_dmg} 2>/dev/null || true
 open -n {q_app}

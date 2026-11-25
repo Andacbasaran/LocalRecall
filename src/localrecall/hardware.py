@@ -194,6 +194,12 @@ def detect_physical_cores(logical_cores: int) -> int:
             from ctypes import wintypes
 
             kernel32 = ctypes.windll.kernel32
+            kernel32.GetLogicalProcessorInformationEx.argtypes = [
+                wintypes.DWORD,
+                ctypes.c_void_p,
+                ctypes.POINTER(wintypes.DWORD),
+            ]
+            kernel32.GetLogicalProcessorInformationEx.restype = wintypes.BOOL
             relation_processor_core = 0
             buf_len = wintypes.DWORD(0)
             kernel32.GetLogicalProcessorInformationEx(
@@ -233,8 +239,11 @@ def detect_isa_features(arch: Optional[str] = None) -> Tuple[str, ...]:
     if sys.platform == "win32":
         try:
             import ctypes
+            from ctypes import wintypes
 
             is_feat = ctypes.windll.kernel32.IsProcessorFeaturePresent
+            is_feat.argtypes = [wintypes.DWORD]
+            is_feat.restype = wintypes.BOOL
             win_flags = (
                 (10, "sse2"),
                 (37, "sse4_1"),
@@ -242,7 +251,7 @@ def detect_isa_features(arch: Optional[str] = None) -> Tuple[str, ...]:
                 (39, "avx"),
                 (40, "avx2"),
                 (41, "avx512f"),
-                (29, "neon"),
+                (19, "neon"),
                 (43, "dotprod"),
             )
             for code, name in win_flags:

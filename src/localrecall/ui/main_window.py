@@ -261,6 +261,7 @@ class MainWindow(QMainWindow):
     capture_updated = pyqtSignal(int)
     status_updated = pyqtSignal(str)
     pause_state_changed = pyqtSignal(bool)
+    external_pause_changed = pyqtSignal(bool)
     config_changed = pyqtSignal(object)
     language_changed = pyqtSignal(str)
 
@@ -283,6 +284,8 @@ class MainWindow(QMainWindow):
         self.i18n = LanguageManager(config.ui_language)
 
         self._force_quit = False
+        self._closing = False
+        self._needs_refresh = False
         self._timeline_records: list[CaptureRecord] = []
         self._current_record: CaptureRecord | None = None
         self._current_tab = 0
@@ -322,6 +325,7 @@ class MainWindow(QMainWindow):
 
         self.capture_updated.connect(self._on_capture_updated)
         self.status_updated.connect(self._on_status_updated)
+        self.external_pause_changed.connect(self._on_external_pause_changed)
         self._search_ready.connect(self._apply_search_results)
         self._thumb_ready.connect(self._on_thumb_loaded)
 
@@ -1446,7 +1450,31 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+F"), self, activated=self.focus_search)
         QShortcut(QKeySequence("Alt+Left"), self, activated=lambda: self._step_timeline(-1))
         QShortcut(QKeySequence("Alt+Right"), self, activated=lambda: self._step_timeline(1))
-        QShortcut(QKeySequence("Delete"), self, activated=self._delete_current_record)
+        del_sc = QShortcut(QKeySequence("Delete"), self.results_list, activated=self._delete_current_record)
+        del_sc.setContext(Qt.ShortcutContext.WidgetShortcut)
+
+    def _stop_background_threads(self) -> None:
+        if self._download_thread is not None and self._download_thread.isRunning():
+            try:
+                self._download_thread.cancel()
+            except Exception:
+                pass
+            self._download_thread.wait(3000)
+        if self._update_thread is not None and self._update_thread.isRunning():
+            self._update_thread.quit()
+            self._update_thread.wait(3000)
+
+    def showEvent(self, event) -> None:  # noqa: N802
+        super().showEvent(event)
+        if self._needs_refresh and not self._closing:
+            self._needs_refresh = False
+            self.refresh_all(sync=False)
+
+    def _on_external_pause_changed(self, paused: bool) -> None:
+        if self._closing:
+            return
+        self._update_pause_ui(paused)
+        self.pause_state_changed.emit(paused)
 
     def bring_to_front_and_focus_search(self) -> None:
         self.showNormal()
@@ -1467,18 +1495,22 @@ class MainWindow(QMainWindow):
 
     def request_quit(self) -> None:
         self._force_quit = True
+        self._closing = True
         self._rewind_timer.stop()
         if hasattr(self, "_search_timer"):
             self._search_timer.stop()
+        self._stop_background_threads()
         self._executor.shutdown(wait=True, cancel_futures=True)
         self.close()
 
     def closeEvent(self, event: QCloseEvent | None) -> None:
         can_tray = bool(QSystemTrayIcon.isSystemTrayAvailable()) and self.config.minimize_to_tray
         if self._force_quit or not can_tray:
+            self._closing = True
             self._rewind_timer.stop()
             if hasattr(self, "_search_timer"):
                 self._search_timer.stop()
+            self._stop_background_threads()
             self._executor.shutdown(wait=True, cancel_futures=True)
             if event:
                 event.accept()
@@ -2312,6 +2344,22 @@ class MainWindow(QMainWindow):
     # ═════════════════════════════════════════════════════════════════════════
 
     def _on_capture_updated(self, capture_id: int) -> None:
+        if self._closing:
+            return
+        # Always evict cached thumbnail for updated/blurred/deleted captures to prevent unblurred PII leaks
+        rec = self.db.get_capture(capture_id)
+        if rec is not None and rec.image_path:
+            self._thumb_cache.pop(rec.image_path, None)
+        elif self._current_record and self._current_record.id == capture_id:
+            if self._current_record.image_path:
+                self._thumb_cache.pop(self._current_record.image_path, None)
+            self._show_record(None)
+
+        # Defer heavy UI rebuilds while minimized/hidden in tray (refreshed on showEvent)
+        if not self.isVisible():
+            self._needs_refresh = True
+            return
+
         self._refresh_apps_combo()
         self._refresh_timeline()
         self._refresh_stats()
@@ -2319,10 +2367,11 @@ class MainWindow(QMainWindow):
         if not self.search_input.text().strip():
             self.refresh_results(sync=False)
         elif self._current_record and self._current_record.id == capture_id:
-            rec = self.db.get_capture(capture_id)
-            if rec:
-                self._show_record(rec)
+            self._show_record(rec)
 
     def _on_status_updated(self, message: str) -> None:
+        if self._closing:
+            return
         self.statusBar().showMessage(message, 5000)
-        self._refresh_privacy_badges()
+        if self.isVisible():
+            self._refresh_privacy_badges()

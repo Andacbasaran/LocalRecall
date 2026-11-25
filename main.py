@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import getpass
+import hashlib
 import logging
+import os
 import sys
+import threading
 import traceback
 from datetime import datetime
 from pathlib import Path
@@ -28,6 +32,39 @@ from localrecall.ui.tray import SystemTrayManager
 from localrecall.ui.widgets import create_app_icon
 
 SINGLE_INSTANCE_KEY = "com.andacbasaran.localrecall.v1"
+_MAX_CRASH_LOG_BYTES = 512 * 1024
+
+
+def get_single_instance_key() -> str:
+    """Return a per-user scoped QLocalServer name to prevent multi-user /tmp collisions."""
+    if hasattr(os, "getuid"):
+        ident = f"uid{os.getuid()}"
+    else:
+        user = getpass.getuser() or "default"
+        ident = hashlib.sha256(user.encode("utf-8", errors="ignore")).hexdigest()[:12]
+    return f"{SINGLE_INSTANCE_KEY}.{ident}"
+
+
+def _append_crash_log(crash_log_path: Path, header: str, body: str) -> None:
+    try:
+        crash_log_path.parent.mkdir(parents=True, exist_ok=True)
+        if os.name == "posix":
+            try:
+                os.chmod(crash_log_path.parent, 0o700)
+            except OSError:
+                pass
+        if crash_log_path.exists() and crash_log_path.stat().st_size > _MAX_CRASH_LOG_BYTES:
+            tail = crash_log_path.read_bytes()[-(_MAX_CRASH_LOG_BYTES // 2) :]
+            crash_log_path.write_bytes(tail)
+        with open(crash_log_path, "a", encoding="utf-8") as f:
+            f.write(f"\n{header}\n{body}\n")
+        if os.name == "posix":
+            try:
+                os.chmod(crash_log_path, 0o600)
+            except OSError:
+                pass
+    except Exception:
+        pass
 
 
 def _install_crash_logger(crash_log_path: Path) -> None:
@@ -35,23 +72,31 @@ def _install_crash_logger(crash_log_path: Path) -> None:
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_tb)
             return
-        try:
-            crash_log_path.parent.mkdir(parents=True, exist_ok=True)
-            stamp = datetime.now().isoformat(timespec="seconds")
-            body = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
-            with open(crash_log_path, "a", encoding="utf-8") as f:
-                f.write(f"\n=== Crash {stamp} (LocalRecall v{__version__}) ===\n{body}\n")
-        except Exception:
-            pass
+        stamp = datetime.now().isoformat(timespec="seconds")
+        body = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+        _append_crash_log(crash_log_path, f"=== Crash {stamp} (LocalRecall v{__version__}) ===", body)
         sys.__excepthook__(exc_type, exc_value, exc_tb)
 
+    def _handle_thread_exception(args: threading.ExceptHookArgs) -> None:
+        stamp = datetime.now().isoformat(timespec="seconds")
+        tname = args.thread.name if args.thread is not None else "unknown"
+        body = "".join(traceback.format_exception(args.exc_type, args.exc_value, args.exc_traceback))
+        _append_crash_log(
+            crash_log_path,
+            f"=== Thread Crash ({tname}) {stamp} (LocalRecall v{__version__}) ===",
+            body,
+        )
+        threading.__excepthook__(args)
+
     sys.excepthook = _handle_exception
+    threading.excepthook = _handle_thread_exception
 
 
-def _notify_running_instance(socket_name: str = SINGLE_INSTANCE_KEY) -> bool:
+def _notify_running_instance(socket_name: str | None = None) -> bool:
     """Returns True if an existing LocalRecall instance is already running and was signaled."""
+    key = socket_name or get_single_instance_key()
     sock = QLocalSocket()
-    sock.connectToServer(socket_name)
+    sock.connectToServer(key)
     if sock.waitForConnected(250):
         sock.write(b"SHOW")
         sock.flush()
@@ -61,10 +106,15 @@ def _notify_running_instance(socket_name: str = SINGLE_INSTANCE_KEY) -> bool:
     return False
 
 
-def _start_instance_server(on_show_callback, socket_name: str = SINGLE_INSTANCE_KEY) -> QLocalServer:
-    QLocalServer.removeServer(socket_name)
+def _start_instance_server(on_show_callback, socket_name: str | None = None) -> QLocalServer:
+    key = socket_name or get_single_instance_key()
     server = QLocalServer()
-    if server.listen(socket_name):
+    server.setSocketOptions(QLocalServer.SocketOption.UserAccessOption)
+    if not server.listen(key):
+        if not _notify_running_instance(key):
+            QLocalServer.removeServer(key)
+            server.listen(key)
+    if server.isListening():
         def _on_new_connection() -> None:
             client = server.nextPendingConnection()
             if client is not None:
@@ -135,12 +185,17 @@ def main(argv: list[str] | None = None) -> int:
         if window_holder:
             window_holder[0].status_updated.emit(message)
 
+    def on_pause_changed(paused: bool) -> None:
+        if window_holder:
+            window_holder[0].external_pause_changed.emit(paused)
+
     capture_service = CaptureService(
         config=config,
         db=db,
         media=media,
         on_capture=on_capture,
         on_status=on_status,
+        on_pause_changed=on_pause_changed,
     )
 
     window = MainWindow(
@@ -159,17 +214,17 @@ def main(argv: list[str] | None = None) -> int:
     hotkey_mgr = GlobalHotkeyManager(app, target_widget=window)
     hotkey_mgr.triggered.connect(window.bring_to_front_and_focus_search)
 
-    def apply_hotkey(cfg: AppConfig) -> None:
+    # System Tray (safe on headless / tray-less Linux)
+    tray = SystemTrayManager(i18n=window.i18n)
+
+    def apply_config_hooks(cfg: AppConfig) -> None:
         hotkey_mgr.unregister()
         if cfg.global_hotkey_enabled and cfg.global_hotkey:
             hotkey_mgr.register(cfg.global_hotkey)
+        app.setQuitOnLastWindowClosed(not (tray.is_available and cfg.minimize_to_tray))
 
-    apply_hotkey(config)
-    window.config_changed.connect(apply_hotkey)
-
-    # System Tray (safe on headless / tray-less Linux)
-    tray = SystemTrayManager(i18n=window.i18n)
-    app.setQuitOnLastWindowClosed(not (tray.is_available and config.minimize_to_tray))
+    apply_config_hooks(config)
+    window.config_changed.connect(apply_config_hooks)
     tray.set_paused(capture_service.is_paused)
     tray.open_requested.connect(window.bring_to_front_and_focus_search)
     tray.toggle_pause_requested.connect(window.toggle_pause)
@@ -180,29 +235,39 @@ def main(argv: list[str] | None = None) -> int:
     window.pause_state_changed.connect(tray.set_paused)
     window.language_changed.connect(lambda _lang: tray.retranslate())
 
-    def shutdown() -> None:
+    shutting_down = False
+
+    def shutdown(quit_loop: bool = True) -> None:
+        nonlocal shutting_down
+        if shutting_down:
+            return
+        shutting_down = True
+        # Detach window callbacks FIRST so stop() never emits onto a closing/closed SQLite DB
+        window_holder.clear()
         hotkey_mgr.unregister()
         capture_service.stop()
         tray.hide()
         if instance_server is not None:
-            instance_server.close()
+            try:
+                instance_server.close()
+            except Exception:
+                pass
         window.request_quit()
         db.close()
-        app.quit()
+        if quit_loop:
+            app.quit()
 
-    tray.quit_requested.connect(shutdown)
+    tray.quit_requested.connect(lambda: shutdown(quit_loop=True))
     tray.show()
 
     capture_service.start()
     if not args.minimized or not tray.is_available:
         window.show()
 
-    exit_code = app.exec()
-    hotkey_mgr.unregister()
-    capture_service.stop()
-    if instance_server is not None:
-        instance_server.close()
-    db.close()
+    try:
+        exit_code = app.exec()
+    finally:
+        shutdown(quit_loop=False)
     return exit_code
 
 

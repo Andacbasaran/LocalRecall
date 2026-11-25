@@ -186,24 +186,37 @@ ${entries}
 `;
 }
 
-async function getLatestReleaseAssetUrls() {
+function githubApiHeaders(env, accept) {
+  const headers = {
+    "Accept": accept,
+    "User-Agent": "LocalRecall-Cloudflare-Worker"
+  };
+  if (env && typeof env.GITHUB_TOKEN === "string" && env.GITHUB_TOKEN.trim()) {
+    headers["Authorization"] = `Bearer ${env.GITHUB_TOKEN.trim()}`;
+  }
+  return headers;
+}
+
+function versionedDownloadFallbacks() {
+  const base = `https://github.com/${GITHUB_REPO}/releases/download/v${APP_VERSION}`;
+  return {
+    windowsUrl: `${base}/LocalRecall-Setup-v${APP_VERSION}-Windows-x64.exe`,
+    macosUrl: `${base}/LocalRecall-v${APP_VERSION}-macOS-arm64.dmg`,
+    linuxUrl: `${base}/LocalRecall-v${APP_VERSION}-Linux-x86_64.tar.gz`
+  };
+}
+
+async function getLatestReleaseAssetUrls(env) {
   const now = Date.now();
   if (cachedReleaseAssets && (now - cachedReleaseAtMs) < RELEASE_CACHE_TTL_MS) {
     return cachedReleaseAssets;
   }
-  const result = {
-    windowsUrl: RELEASES_FALLBACK_URL,
-    macosUrl: RELEASES_FALLBACK_URL,
-    linuxUrl: RELEASES_FALLBACK_URL
-  };
+  const result = versionedDownloadFallbacks();
   try {
     const resp = await fetch(
       `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`,
       {
-        headers: {
-          "Accept": "application/vnd.github+json",
-          "User-Agent": "LocalRecall-Cloudflare-Worker"
-        },
+        headers: githubApiHeaders(env, "application/vnd.github+json"),
         cf: {
           cacheEverything: true,
           cacheTtl: 300
@@ -235,12 +248,12 @@ async function getLatestReleaseAssetUrls() {
       cachedReleaseAtMs = now;
     }
   } catch (_) {
-    // Fallback to GitHub Releases latest page if API is unreachable
+    // Fallback to deterministic versioned GitHub Releases asset URLs
   }
   return result;
 }
 
-async function getLatestGithubRawBase() {
+async function getLatestGithubRawBase(env) {
   const now = Date.now();
   if (cachedCommitSha && (now - cachedAtMs) < SHA_CACHE_TTL_MS) {
     return `https://raw.githubusercontent.com/${GITHUB_REPO}/${cachedCommitSha}`;
@@ -249,10 +262,7 @@ async function getLatestGithubRawBase() {
     const resp = await fetch(
       `https://api.github.com/repos/${GITHUB_REPO}/commits/${GITHUB_BRANCH}`,
       {
-        headers: {
-          "Accept": "application/vnd.github.VERSION.sha",
-          "User-Agent": "LocalRecall-Cloudflare-Worker"
-        },
+        headers: githubApiHeaders(env, "application/vnd.github.VERSION.sha"),
         cf: {
           cacheEverything: true,
           cacheTtl: 60
@@ -329,7 +339,24 @@ function withSecurityHeaders(headersInit = {}) {
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("X-Frame-Options", "SAMEORIGIN");
+  headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  headers.set("Cross-Origin-Opener-Policy", "same-origin");
+  headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+  );
   return headers;
+}
+
+function redirectWithSecurity(targetUrl, status = 302) {
+  return new Response(null, {
+    status,
+    headers: withSecurityHeaders({
+      "Location": targetUrl,
+      "Cache-Control": "no-store"
+    })
+  });
 }
 
 export default {
@@ -339,6 +366,15 @@ export default {
     const normalizedPath = pathname.replace(/\/+$/, "") || "/";
 
     try {
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return new Response("Method Not Allowed", {
+          status: 405,
+          headers: withSecurityHeaders({ "Allow": "GET, HEAD" })
+        });
+      }
+
+      const isHead = request.method === "HEAD";
+
       console.log(JSON.stringify({
         message: "incoming_request",
         method: request.method,
@@ -364,7 +400,7 @@ export default {
         if (!isExplicitPath) {
           headers.set("Vary", "Accept-Language, Cookie");
         }
-        return new Response(html, { status: 200, headers });
+        return new Response(isHead ? null : html, { status: 200, headers });
       }
 
       if (pathname === "/robots.txt") {
@@ -373,7 +409,7 @@ export default {
           "Cache-Control": "public, max-age=86400"
         });
         return new Response(
-          `User-agent: *\nAllow: /\nSitemap: ${SITE_ORIGIN}/sitemap.xml\n`,
+          isHead ? null : `User-agent: *\nAllow: /\nSitemap: ${SITE_ORIGIN}/sitemap.xml\n`,
           { status: 200, headers }
         );
       }
@@ -383,27 +419,27 @@ export default {
           "Content-Type": "application/xml; charset=utf-8",
           "Cache-Control": "public, max-age=3600"
         });
-        return new Response(buildSitemapXml(), { status: 200, headers });
+        return new Response(isHead ? null : buildSitemapXml(), { status: 200, headers });
       }
 
       if (pathname === "/downloads/LocalRecall.exe" || pathname === "/LocalRecall.exe") {
-        const { windowsUrl } = await getLatestReleaseAssetUrls();
-        return Response.redirect(windowsUrl || RELEASES_FALLBACK_URL, 302);
+        const { windowsUrl } = await getLatestReleaseAssetUrls(env);
+        return redirectWithSecurity(windowsUrl || RELEASES_FALLBACK_URL, 302);
       }
 
       if (pathname === "/downloads/LocalRecall-macOS.dmg") {
-        const { macosUrl } = await getLatestReleaseAssetUrls();
-        return Response.redirect(macosUrl || RELEASES_FALLBACK_URL, 302);
+        const { macosUrl } = await getLatestReleaseAssetUrls(env);
+        return redirectWithSecurity(macosUrl || RELEASES_FALLBACK_URL, 302);
       }
 
       if (pathname === "/downloads/LocalRecall-Linux.tar.gz") {
-        const { linuxUrl } = await getLatestReleaseAssetUrls();
-        return Response.redirect(linuxUrl || RELEASES_FALLBACK_URL, 302);
+        const { linuxUrl } = await getLatestReleaseAssetUrls(env);
+        return redirectWithSecurity(linuxUrl || RELEASES_FALLBACK_URL, 302);
       }
 
       const route = STATIC_ROUTES[pathname];
       if (route) {
-        const rawBase = await getLatestGithubRawBase();
+        const rawBase = await getLatestGithubRawBase(env);
         const upstreamUrl = `${rawBase}${route.repoPath}`;
         const upstreamResp = await fetch(upstreamUrl, {
           cf: {
@@ -437,13 +473,16 @@ export default {
           headers.set("Content-Length", contentLength);
         }
 
-        return new Response(upstreamResp.body, {
-          status: request.method === "HEAD" ? 200 : upstreamResp.status,
+        return new Response(isHead ? null : upstreamResp.body, {
+          status: isHead ? 200 : upstreamResp.status,
           headers
         });
       }
 
-      return Response.redirect(`${url.origin}/`, 302);
+      return new Response(isHead ? null : "Not Found", {
+        status: 404,
+        headers: withSecurityHeaders({ "Content-Type": "text/plain; charset=utf-8" })
+      });
     } catch (error) {
       const errMessage = error instanceof Error ? error.message : String(error);
       console.error(JSON.stringify({

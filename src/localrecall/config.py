@@ -6,7 +6,9 @@ import json
 import os
 import plistlib
 import sys
+import tempfile
 from dataclasses import asdict, dataclass, field
+from datetime import datetime
 from pathlib import Path
 
 from localrecall import __bundle_id__
@@ -14,7 +16,11 @@ from localrecall import __bundle_id__
 DEFAULT_BLOCKED_PROCESSES: list[str] = [
     # Cross-platform password managers & credential agents (normalized automatically)
     "1password",
+    "1password7",
+    "1password8",
+    "1password-gui",
     "bitwarden",
+    "bitwarden-desktop",
     "keepass",
     "keepassxc",
     "lastpass",
@@ -22,6 +28,12 @@ DEFAULT_BLOCKED_PROCESSES: list[str] = [
     "nordpass",
     "protonpass",
     "enpass",
+    "keeper",
+    "authy",
+    "ente auth",
+    "yubico authenticator",
+    "strongbox",
+    "macpass",
     "credentialuibroker",
     "lockapp",
     "logonui",
@@ -34,26 +46,44 @@ DEFAULT_BLOCKED_PROCESSES: list[str] = [
     "gnome-keyring-daemon",
     "kwalletd5",
     "kwalletd6",
+    "seahorse",
+    "pinentry",
 ]
 
 DEFAULT_BLOCKED_TITLE_KEYWORDS: list[str] = [
     "inprivate",
     "incognito",
+    "inkognito",
     "gizli",
+    "özel gezinti",
+    "özel pencere",
     "private browsing",
     "private window",
+    "privates fenster",
+    "navigation privée",
+    "navegación privada",
     "tor browser",
     "1password",
     "bitwarden",
     "keepass",
     "lastpass",
     "dashlane",
+    "keeper",
     "keychain",
     "şifre",
     "password manager",
     "vault",
     "authenticator",
 ]
+
+
+def _chmod_private(path: Path, is_dir: bool = False) -> None:
+    if os.name != "posix":
+        return
+    try:
+        os.chmod(path, 0o700 if is_dir else 0o600)
+    except OSError:
+        pass
 
 
 def get_default_data_dir() -> Path:
@@ -241,14 +271,37 @@ class AppConfig:
 
     def ensure_dirs(self) -> None:
         self.data_path.mkdir(parents=True, exist_ok=True)
+        _chmod_private(self.data_path, is_dir=True)
         self.captures_dir.mkdir(parents=True, exist_ok=True)
+        _chmod_private(self.captures_dir, is_dir=True)
 
     def save(self) -> None:
         self.ensure_dirs()
-        self.config_path.write_text(
-            json.dumps(asdict(self), ensure_ascii=False, indent=2),
-            encoding="utf-8",
+        payload = json.dumps(asdict(self), ensure_ascii=False, indent=2)
+        fd, tmp_name = tempfile.mkstemp(
+            prefix=".config.",
+            suffix=".tmp",
+            dir=str(self.data_path),
         )
+        tmp_path = Path(tmp_name)
+        try:
+            if os.name == "posix":
+                try:
+                    os.fchmod(fd, 0o600)
+                except OSError:
+                    pass
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(payload)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, self.config_path)
+            _chmod_private(self.config_path, is_dir=False)
+        except Exception:
+            try:
+                tmp_path.unlink(missing_ok=True)
+            except OSError:
+                pass
+            raise
 
     @classmethod
     def load(cls, data_dir: Path | None = None) -> AppConfig:
@@ -258,14 +311,22 @@ class AppConfig:
         if config_file.exists():
             try:
                 raw = json.loads(config_file.read_text(encoding="utf-8"))
+                if not isinstance(raw, dict):
+                    raise ValueError("Configuration root must be a JSON object.")
                 valid_fields = {f.name for f in cls.__dataclass_fields__.values()}
                 filtered = {k: v for k, v in raw.items() if k in valid_fields}
                 filtered.setdefault("data_dir", str(target_dir))
                 cfg = cls(**filtered)
                 cfg.ensure_dirs()
                 return cfg
-            except (json.JSONDecodeError, TypeError, ValueError):
-                pass
+            except (json.JSONDecodeError, TypeError, ValueError, OSError):
+                stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                backup_path = target_dir / f"config.json.corrupt.{stamp}"
+                try:
+                    os.replace(config_file, backup_path)
+                    _chmod_private(backup_path, is_dir=False)
+                except OSError:
+                    pass
 
         cfg = cls(data_dir=str(target_dir))
         cfg.save()

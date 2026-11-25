@@ -21,7 +21,7 @@ from localrecall.storage.database import Database
 from localrecall.storage.media import MediaStore
 
 from .diff import FrameDiffLock
-from .pii import PIIRedactor
+from .pii import PII_MODE_SKIP, PIIRedactor
 from .privacy import PrivacyFilter
 from .window_info import (
     get_active_window_info,
@@ -43,12 +43,14 @@ class CaptureService:
         media: MediaStore,
         on_capture: Callable[[int], None] | None = None,
         on_status: Callable[[str], None] | None = None,
+        on_pause_changed: Callable[[bool], None] | None = None,
     ) -> None:
         self.config = config
         self.db = db
         self.media = media
         self.on_capture = on_capture
         self.on_status = on_status
+        self.on_pause_changed = on_pause_changed
 
         self.hw_profile = detect_hardware_profile()
         self.tuning = compute_runtime_tuning(self.hw_profile, config.cpu_profile)
@@ -120,22 +122,28 @@ class CaptureService:
         self.pii_redactor.set_mode(config.pii_redaction_mode)
         self.ocr_engine.min_confidence = config.ocr_min_confidence
         self.ocr_engine.set_threads(self.tuning.ocr_intra_threads, self.tuning.ocr_inter_threads)
-        if config.ocr_enabled and self.is_running:
-            self.ocr_worker.start()
+        if config.ocr_enabled:
+            if self.is_running:
+                self.ocr_worker.start()
+        else:
+            self.ocr_worker.stop()
 
     def pause(self) -> None:
         self._resume_at_monotonic = None
         self._pause_event.set()
+        self._emit_pause_changed(True)
         self._emit_status("Paused")
 
     def pause_for_minutes(self, minutes: int) -> None:
         self._resume_at_monotonic = time.monotonic() + (max(1, int(minutes)) * 60.0)
         self._pause_event.set()
+        self._emit_pause_changed(True)
         self._emit_status(f"Paused for {minutes}m")
 
     def resume(self) -> None:
         self._resume_at_monotonic = None
         self._pause_event.clear()
+        self._emit_pause_changed(False)
         self._emit_status("Recording")
 
     def toggle_pause(self) -> bool:
@@ -158,11 +166,14 @@ class CaptureService:
         self._emit_status("Paused" if self.is_paused else "Recording")
 
     def stop(self) -> None:
+        was_running = self.is_running
         self._stop_event.set()
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=3.0)
+        self._thread = None
         self.ocr_worker.stop()
-        self._emit_status("Stopped")
+        if was_running:
+            self._emit_status("Stopped")
 
     def capture_once(self, force: bool = False) -> int | None:
         """Captures a single frame if not idle, blocked by privacy, or perceptually duplicated."""
@@ -189,6 +200,19 @@ class CaptureService:
             self._emit_status(f"Privacy Shield blocked ({reason})")
             return None
 
+        stored_title = window.window_title
+        title_pii_redacted = False
+        if self.pii_redactor and self.pii_redactor.is_enabled and stored_title:
+            clean_title, title_dets = self.pii_redactor.redact_text(stored_title)
+            if title_dets:
+                self.db.increment_metric("pii_redactions_count", len(title_dets))
+                self.db.increment_metric("privacy_blocks_count", 1)
+                if self.pii_redactor.mode == PII_MODE_SKIP:
+                    self._emit_status("Privacy Shield blocked (title PII)")
+                    return None
+                stored_title = clean_title
+                title_pii_redacted = True
+
         with open_mss() as sct:
             monitors = sct.monitors
             idx = self.config.monitor_index
@@ -211,13 +235,14 @@ class CaptureService:
         capture_id = self.db.insert_capture(
             image_path=rel_path,
             app_name=window.process_name,
-            window_title=window.window_title,
+            window_title=stored_title,
             width=width,
             height=height,
             ocr_text="",
             ocr_done=not self.config.ocr_enabled,
             timestamp=now,
             file_size_bytes=size_bytes,
+            pii_redacted=title_pii_redacted,
         )
 
         if self.config.ocr_enabled:
@@ -281,8 +306,14 @@ class CaptureService:
             self.on_capture(capture_id)
 
     def _emit_status(self, message: str) -> None:
-        if self.on_status:
-            self.on_status(message)
+        cb = self.on_status
+        if cb:
+            cb(message)
+
+    def _emit_pause_changed(self, paused: bool) -> None:
+        cb = self.on_pause_changed
+        if cb:
+            cb(paused)
 
     def _loop(self) -> None:
         try:

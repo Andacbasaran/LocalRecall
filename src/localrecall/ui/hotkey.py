@@ -6,6 +6,7 @@ import ctypes
 import logging
 import os
 import sys
+import weakref
 
 from PyQt6.QtCore import QAbstractNativeEventFilter, QObject, Qt, pyqtSignal
 from PyQt6.QtGui import QKeySequence, QShortcut
@@ -231,10 +232,41 @@ class GlobalHotkeyManager(QObject):
             carbon.UnregisterEventHotKey.restype = ctypes.c_int32
             carbon.RemoveEventHandler.argtypes = [ctypes.c_void_p]
             carbon.RemoveEventHandler.restype = ctypes.c_int32
+            carbon.GetEventParameter.argtypes = [
+                ctypes.c_void_p,
+                ctypes.c_uint32,
+                ctypes.c_uint32,
+                ctypes.c_void_p,
+                ctypes.c_size_t,
+                ctypes.c_void_p,
+                ctypes.c_void_p,
+            ]
+            carbon.GetEventParameter.restype = ctypes.c_int32
 
-            def _on_carbon_event(_next_handler, _event_ref, _user_data):
+            expected_sig = 0x4C52434C  # 'LRCL'
+            expected_id = self._hotkey_id
+            self_ref = weakref.ref(self)
+
+            def _on_carbon_event(_next_handler, event_ref, _user_data):
+                # Validate EventHotKeyID to avoid triggering on unrelated hotkeys
+                # kEventParamDirectObject = '----' (0x2D2D2D2D), typeEventHotKeyID = 'hkid' (0x686B6964)
+                received = _CarbonEventHotKeyID()
+                status = carbon.GetEventParameter(
+                    event_ref,
+                    0x2D2D2D2D,
+                    0x686B6964,
+                    None,
+                    ctypes.sizeof(_CarbonEventHotKeyID),
+                    None,
+                    ctypes.byref(received),
+                )
+                if status != 0 or received.signature != expected_sig or received.id != expected_id:
+                    return -9874  # eventNotHandledErr
+                mgr = self_ref()
+                if mgr is None:
+                    return -9874
                 try:
-                    self.triggered.emit()
+                    mgr.triggered.emit()
                 except Exception:
                     pass
                 return 0
@@ -244,6 +276,7 @@ class GlobalHotkeyManager(QObject):
             spec = _CarbonEventTypeSpec(0x6B657962, 5)
             target = carbon.GetApplicationEventTarget()
             if not target:
+                self._carbon_cb = None
                 return False
 
             handler_ref = ctypes.c_void_p(0)
@@ -251,13 +284,15 @@ class GlobalHotkeyManager(QObject):
                 target, self._carbon_cb, 1, ctypes.byref(spec), None, ctypes.byref(handler_ref)
             )
             if err != 0:
+                self._carbon_cb = None
                 return False
 
-            hk_id = _CarbonEventHotKeyID(0x4C52434C, self._hotkey_id)  # 'LRCL'
+            hk_id = _CarbonEventHotKeyID(expected_sig, expected_id)
             hk_ref = ctypes.c_void_p(0)
             err = carbon.RegisterEventHotKey(vk, mods, hk_id, target, 0, ctypes.byref(hk_ref))
             if err != 0:
                 carbon.RemoveEventHandler(handler_ref)
+                self._carbon_cb = None
                 return False
 
             self._carbon_lib = carbon
@@ -335,6 +370,8 @@ class GlobalHotkeyManager(QObject):
                     self._carbon_lib.RemoveEventHandler(self._carbon_handler_ref)
                 self._carbon_hotkey_ref = ctypes.c_void_p(0)
                 self._carbon_handler_ref = ctypes.c_void_p(0)
+                self._carbon_cb = None
+                self._carbon_lib = None
             if self._qt_shortcut is not None:
                 self._qt_shortcut.setEnabled(False)
                 self._qt_shortcut.deleteLater()

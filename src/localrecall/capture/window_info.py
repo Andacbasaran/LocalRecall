@@ -341,6 +341,17 @@ def _get_macos_active_window() -> ActiveWindowInfo:
     return ActiveWindowInfo(process_name=app_name or "macOS", window_title=title, pid=pid)
 
 
+def _parse_xprop_window_title(stdout: str) -> str:
+    """Parses _NET_WM_NAME / WM_NAME from xprop output, handling escaped quotes."""
+    m_title = re.search(
+        r'(?:_NET_WM_NAME|WM_NAME)\([^)]+\)\s*=\s*"((?:[^"\\]|\\.)*)"',
+        stdout or "",
+    )
+    if not m_title:
+        return ""
+    return m_title.group(1).replace('\\"', '"').replace("\\\\", "\\").strip()
+
+
 def _get_linux_active_window() -> ActiveWindowInfo:
     if not os.environ.get("DISPLAY"):
         return ActiveWindowInfo(process_name="wayland", window_title="", pid=0)
@@ -419,9 +430,7 @@ def _get_linux_active_window() -> ActiveWindowInfo:
                     if os.path.exists(comm_path):
                         with open(comm_path, "r", encoding="utf-8", errors="ignore") as f:
                             proc = f.read().strip()
-                m_title = re.search(r'(?:_NET_WM_NAME|WM_NAME)\([^)]+\)\s*=\s*"([^"]*)"', info_res.stdout)
-                if m_title:
-                    title = m_title.group(1).strip()
+                title = _parse_xprop_window_title(info_res.stdout)
                 return ActiveWindowInfo(process_name=proc or "x11", window_title=title, pid=pid)
         except Exception:
             pass

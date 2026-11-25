@@ -2,10 +2,20 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime
 from pathlib import Path
 
 from PIL import Image
+
+
+def _chmod_private(path: Path, is_dir: bool = False) -> None:
+    if os.name != "posix":
+        return
+    try:
+        os.chmod(path, 0o700 if is_dir else 0o600)
+    except OSError:
+        pass
 
 
 class MediaStore:
@@ -16,6 +26,7 @@ class MediaStore:
         self.quality = quality
         self.max_width = max_width
         self.captures_dir.mkdir(parents=True, exist_ok=True)
+        _chmod_private(self.captures_dir, is_dir=True)
 
     def _prepare_image(self, image: Image.Image) -> Image.Image:
         img_to_save = image
@@ -37,6 +48,7 @@ class MediaStore:
         ts = timestamp or datetime.now()
         day_dir = self.captures_dir / ts.strftime("%Y-%m-%d")
         day_dir.mkdir(parents=True, exist_ok=True)
+        _chmod_private(day_dir, is_dir=True)
 
         base_name = ts.strftime("%H%M%S_%f")[:-3]
         full_path = day_dir / f"{base_name}.webp"
@@ -47,6 +59,7 @@ class MediaStore:
 
         img_to_save = self._prepare_image(image)
         img_to_save.save(full_path, format="WEBP", quality=self.quality, method=4)
+        _chmod_private(full_path, is_dir=False)
         size_bytes = int(full_path.stat().st_size) if full_path.exists() else 0
         rel_path = full_path.relative_to(self.captures_dir).as_posix()
         return rel_path, img_to_save.width, img_to_save.height, size_bytes
@@ -60,23 +73,39 @@ class MediaStore:
         """Atomically overwrites an existing WebP capture (e.g. after PII blur) and returns bytes."""
         target = self.resolve_path(rel_path)
         target.parent.mkdir(parents=True, exist_ok=True)
+        _chmod_private(target.parent, is_dir=True)
         tmp_path = target.with_suffix(".tmp.webp")
         img_to_save = self._prepare_image(image)
         img_to_save.save(tmp_path, format="WEBP", quality=self.quality, method=4)
+        _chmod_private(tmp_path, is_dir=False)
         tmp_path.replace(target)
+        _chmod_private(target, is_dir=False)
         return int(target.stat().st_size) if target.exists() else 0
 
     def resolve_path(self, rel_path: str) -> Path:
-        return self.captures_dir / rel_path
+        if not rel_path or not isinstance(rel_path, str):
+            raise ValueError("Invalid media path.")
+        candidate = Path(rel_path)
+        if candidate.is_absolute():
+            raise ValueError(f"Path traversal blocked (absolute path): {rel_path}")
+        base = self.captures_dir.resolve()
+        target = (base / candidate).resolve()
+        if not target.is_relative_to(base) or target == base:
+            raise ValueError(f"Path traversal blocked: {rel_path}")
+        return target
 
     def delete_image(self, rel_path: str) -> bool:
         if not rel_path:
             return False
-        target = self.resolve_path(rel_path)
+        try:
+            target = self.resolve_path(rel_path)
+        except ValueError:
+            return False
+        base = self.captures_dir.resolve()
         try:
             if target.exists():
                 target.unlink()
-                if target.parent != self.captures_dir and target.parent.exists():
+                if target.parent != base and target.parent.exists():
                     if not any(target.parent.iterdir()):
                         target.parent.rmdir()
                 return True

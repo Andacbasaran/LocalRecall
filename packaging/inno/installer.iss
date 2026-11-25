@@ -12,6 +12,12 @@
   #define MyAppVersion "1.0.0"
 #endif
 
+#if Pos("-", MyAppVersion) > 0
+  #define MyAppNumericVersion Copy(MyAppVersion, 1, Pos("-", MyAppVersion) - 1)
+#else
+  #define MyAppNumericVersion MyAppVersion
+#endif
+
 #define MyAppName "LocalRecall"
 #define MyAppPublisher "Andac Basaran"
 #define MyAppURL "https://localrecall.andacbasaran.com"
@@ -41,12 +47,12 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
 CloseApplications=force
 RestartApplications=yes
-VersionInfoVersion={#MyAppVersion}.0
+VersionInfoVersion={#MyAppNumericVersion}.0
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription={#MyAppName} — 100% Offline Smart Screen Memory Setup
 VersionInfoProductName={#MyAppName}
@@ -75,6 +81,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "LocalRecall"; ValueData: """{app}\{#MyAppExeName}"" --minimized"; Flags: uninsdeletevalue; Tasks: autostart
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "LocalRecall"; Flags: uninsdeletevalue dontcreatekey
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
